@@ -1,12 +1,26 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import {
+  Container,
+  Box,
+  Typography,
+  Button,
+  Paper,
+  TextField,
+  Stack,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+} from '@mui/material';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useSkill } from '../hooks/useSkills';
 import { useSkillGrades } from '../hooks/useSkillGrades';
 import { useSkillProfiles } from '../hooks/useSkillProfiles';
 import { DataTable } from '../components/DataTable';
 import { Loading } from '../components/Loading';
 import { ErrorMessage } from '../components/ErrorMessage';
-import { Skill, SkillRequest, SkillGrade, SkillGradeRequest } from '../types';
+import { SkillRequest, SkillGrade, SkillGradeRequest } from '../types';
 import { skillService } from '../services/skillService';
 import { skillGradeService } from '../services/skillGradeService';
 
@@ -18,10 +32,12 @@ export function SkillDetailsPage() {
   // Validate skill ID
   if (isNaN(skillId)) {
     return (
-      <div style={{ padding: '20px' }}>
+      <Container maxWidth="lg" sx={{ py: 4 }}>
         <ErrorMessage message="Invalid skill ID" />
-        <button onClick={() => navigate('/skills')}>Back to Skills</button>
-      </div>
+        <Button variant="outlined" onClick={() => navigate('/skills')} sx={{ mt: 2 }}>
+          Back to Skills
+        </Button>
+      </Container>
     );
   }
 
@@ -172,19 +188,12 @@ export function SkillDetailsPage() {
   // Error state
   if (skillError || !skill) {
     return (
-      <div style={{ padding: '20px' }}>
+      <Container maxWidth="lg" sx={{ py: 4 }}>
         <ErrorMessage message={skillError || 'Skill not found'} />
-        <button
-          onClick={() => navigate('/skills')}
-          style={{
-            marginTop: '10px',
-            padding: '10px 20px',
-            cursor: 'pointer',
-          }}
-        >
+        <Button variant="outlined" onClick={() => navigate('/skills')} sx={{ mt: 2 }}>
           Back to Skills
-        </button>
-      </div>
+        </Button>
+      </Container>
     );
   }
 
@@ -194,197 +203,134 @@ export function SkillDetailsPage() {
   ];
 
   return (
-    <div style={{ padding: '20px' }}>
+    <Container maxWidth="lg" sx={{ py: 4 }}>
       {/* Header */}
-      <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '20px' }}>
-        <button
+      <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', mb: 3 }}>
+        <Button
+          variant="outlined"
+          startIcon={<ArrowBackIcon />}
           onClick={handleBack}
-          style={{
-            padding: '8px 16px',
-            cursor: 'pointer',
-            backgroundColor: '#6c757d',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-          }}
         >
-          ← Back
-        </button>
-        <h1>Skill: {skill.name}</h1>
-      </div>
+          Back
+        </Button>
+        <Typography variant="h4" component="h1">
+          Skill: {skill.name}
+        </Typography>
+      </Box>
 
       {/* Skill Information Section */}
-      <div
-        style={{
-          marginBottom: '40px',
-          padding: '20px',
-          border: '1px solid #ddd',
-          borderRadius: '4px',
-          backgroundColor: '#f9f9f9',
-        }}
-      >
-        <h2>Skill Information</h2>
-        <div style={{ marginBottom: '10px' }}>
-          <label style={{ display: 'block', marginBottom: '5px' }}>Name *</label>
-          <input
-            type="text"
+      <Paper sx={{ p: 3, mb: 5 }}>
+        <Typography variant="h5" component="h2" gutterBottom>
+          Skill Information
+        </Typography>
+        <Stack spacing={2}>
+          <TextField
+            label="Name"
             value={skillFormData.name}
             onChange={(e) => handleSkillChange('name', e.target.value)}
             disabled={skillSaving}
             required
-            style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
+            fullWidth
+            variant="outlined"
+            size="small"
           />
-        </div>
-        <div style={{ marginBottom: '10px' }}>
-          <label style={{ display: 'block', marginBottom: '5px' }}>Skill Profile *</label>
-          <select
-            value={skillFormData.skillProfileId}
-            onChange={(e) => handleSkillChange('skillProfileId', Number(e.target.value))}
-            disabled={skillSaving}
-            required
-            style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
-          >
-            <option value={0}>Select a skill profile</option>
-            {skillProfiles.map((profile) => (
-              <option key={profile.id} value={profile.id}>
-                {profile.name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div style={{ marginBottom: '10px' }}>
-          <label style={{ display: 'block', marginBottom: '5px' }}>Description</label>
-          <textarea
+          <FormControl fullWidth variant="outlined" size="small" required>
+            <InputLabel>Skill Profile</InputLabel>
+            <Select
+              label="Skill Profile"
+              value={skillFormData.skillProfileId}
+              onChange={(e) => handleSkillChange('skillProfileId', Number(e.target.value))}
+              disabled={skillSaving}
+            >
+              <option value={0}>Select a skill profile</option>
+              {skillProfiles.map((profile) => (
+                <MenuItem key={profile.id} value={profile.id}>
+                  {profile.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <TextField
+            label="Description"
             value={skillFormData.description}
             onChange={(e) => handleSkillChange('description', e.target.value)}
             disabled={skillSaving}
+            multiline
             rows={3}
-            style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
+            fullWidth
+            variant="outlined"
           />
-        </div>
-        <div style={{ marginTop: '15px', display: 'flex', gap: '10px' }}>
-          <button
-            onClick={handleSkillSave}
-            disabled={!skillDirty || skillSaving}
-            style={{
-              padding: '10px 20px',
-              backgroundColor: skillDirty && !skillSaving ? '#28a745' : '#6c757d',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: skillDirty && !skillSaving ? 'pointer' : 'not-allowed',
-            }}
-          >
-            {skillSaving ? 'Saving...' : 'Save Changes'}
-          </button>
-          <button
-            onClick={handleSkillCancel}
-            disabled={!skillDirty || skillSaving}
-            style={{
-              padding: '10px 20px',
-              backgroundColor: '#6c757d',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: skillDirty && !skillSaving ? 'pointer' : 'not-allowed',
-            }}
-          >
-            Cancel
-          </button>
-        </div>
-      </div>
+          <Stack direction="row" spacing={2} sx={{ mt: 2 }}>
+            <Button
+              variant="contained"
+              color={skillDirty && !skillSaving ? 'success' : 'inherit'}
+              onClick={handleSkillSave}
+              disabled={!skillDirty || skillSaving}
+            >
+              {skillSaving ? 'Saving...' : 'Save Changes'}
+            </Button>
+            <Button
+              variant="outlined"
+              color="secondary"
+              onClick={handleSkillCancel}
+              disabled={!skillDirty || skillSaving}
+            >
+              Cancel
+            </Button>
+          </Stack>
+        </Stack>
+      </Paper>
 
       {/* Skill Grades Section */}
-      <div>
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: '20px',
-          }}
-        >
-          <h2>Skill Grades</h2>
-          <button
-            onClick={handleGradeCreate}
-            style={{
-              padding: '10px 20px',
-              backgroundColor: '#007bff',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer',
-            }}
-          >
+      <Box>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+          <Typography variant="h5" component="h2">
+            Skill Grades
+          </Typography>
+          <Button variant="contained" color="primary" onClick={handleGradeCreate}>
             Add Grade
-          </button>
-        </div>
+          </Button>
+        </Box>
 
         {/* Grade Form */}
         {showGradeForm && (
-          <div
-            style={{
-              marginBottom: '20px',
-              padding: '20px',
-              border: '1px solid #ddd',
-              borderRadius: '4px',
-              backgroundColor: '#f9f9f9',
-            }}
-          >
-            <h3>{editingGrade ? 'Edit Grade' : 'New Grade'}</h3>
+          <Paper sx={{ p: 3, mb: 3 }}>
+            <Typography variant="h6" component="h3" gutterBottom>
+              {editingGrade ? 'Edit Grade' : 'New Grade'}
+            </Typography>
             <form onSubmit={handleGradeSubmit}>
-              <div style={{ marginBottom: '10px' }}>
-                <label style={{ display: 'block', marginBottom: '5px' }}>Code *</label>
-                <input
-                  type="text"
+              <Stack spacing={2}>
+                <TextField
+                  label="Code"
                   value={gradeFormData.code}
                   onChange={(e) => setGradeFormData({ ...gradeFormData, code: e.target.value })}
                   required
                   placeholder="e.g., beginner, intermediate, advanced, expert"
-                  style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
+                  fullWidth
+                  variant="outlined"
+                  size="small"
                 />
-              </div>
-              <div style={{ marginBottom: '10px' }}>
-                <label style={{ display: 'block', marginBottom: '5px' }}>Description</label>
-                <textarea
+                <TextField
+                  label="Description"
                   value={gradeFormData.description}
                   onChange={(e) => setGradeFormData({ ...gradeFormData, description: e.target.value })}
+                  multiline
                   rows={3}
                   placeholder="Describe what this grade level means"
-                  style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
+                  fullWidth
+                  variant="outlined"
                 />
-              </div>
-              <div style={{ marginTop: '15px', display: 'flex', gap: '10px' }}>
-                <button
-                  type="submit"
-                  style={{
-                    padding: '10px 20px',
-                    backgroundColor: '#28a745',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '4px',
-                    cursor: 'pointer',
-                  }}
-                >
-                  Save
-                </button>
-                <button
-                  type="button"
-                  onClick={handleGradeCancel}
-                  style={{
-                    padding: '10px 20px',
-                    backgroundColor: '#6c757d',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '4px',
-                    cursor: 'pointer',
-                  }}
-                >
-                  Cancel
-                </button>
-              </div>
+                <Stack direction="row" spacing={2} sx={{ mt: 2 }}>
+                  <Button type="submit" variant="contained" color="success">
+                    Save
+                  </Button>
+                  <Button variant="outlined" color="secondary" onClick={handleGradeCancel}>
+                    Cancel
+                  </Button>
+                </Stack>
+              </Stack>
             </form>
-          </div>
+          </Paper>
         )}
 
         {/* Grades Loading/Error States */}
@@ -400,7 +346,7 @@ export function SkillDetailsPage() {
             onDelete={handleGradeDelete}
           />
         )}
-      </div>
-    </div>
+      </Box>
+    </Container>
   );
 }
