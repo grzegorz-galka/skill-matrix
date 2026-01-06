@@ -1,4 +1,17 @@
 import React from 'react';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  IconButton,
+  Typography,
+} from '@mui/material';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
 
 interface Column<T> {
   key: string;
@@ -20,73 +33,67 @@ export function DataTable<T extends { id: number }>({
   onDelete,
 }: DataTableProps<T>) {
   return (
-    <div style={{ overflowX: 'auto' }}>
-      <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '1rem' }}>
-        <thead>
-          <tr style={{ borderBottom: '2px solid #ddd', backgroundColor: '#f5f5f5' }}>
+    <TableContainer component={Paper} sx={{ mt: 2 }}>
+      <Table>
+        <TableHead>
+          <TableRow>
             {columns.map((col) => (
-              <th key={col.key} style={{ padding: '12px', textAlign: 'left' }}>
+              <TableCell key={col.key} sx={{ fontWeight: 'bold' }}>
                 {col.header}
-              </th>
+              </TableCell>
             ))}
             {(onEdit || onDelete) && (
-              <th style={{ padding: '12px', textAlign: 'left' }}>Actions</th>
+              <TableCell sx={{ fontWeight: 'bold' }}>Actions</TableCell>
             )}
-          </tr>
-        </thead>
-        <tbody>
+          </TableRow>
+        </TableHead>
+        <TableBody>
           {data.length === 0 ? (
-            <tr>
-              <td colSpan={columns.length + 1} style={{ padding: '20px', textAlign: 'center' }}>
-                No data available
-              </td>
-            </tr>
+            <TableRow>
+              <TableCell colSpan={columns.length + 1} align="center">
+                <Typography variant="body2" color="text.secondary" sx={{ py: 2 }}>
+                  No data available
+                </Typography>
+              </TableCell>
+            </TableRow>
           ) : (
             data.map((item) => (
-              <tr key={item.id} style={{ borderBottom: '1px solid #ddd' }}>
+              <TableRow key={item.id} hover>
                 {columns.map((col) => (
-                  <td key={col.key} style={{ padding: '12px' }}>
+                  <TableCell key={col.key}>
                     {col.render
                       ? col.render(item)
                       : String((item as any)[col.key] || '')}
-                  </td>
+                  </TableCell>
                 ))}
                 {(onEdit || onDelete) && (
-                  <td style={{ padding: '12px' }}>
+                  <TableCell>
                     {onEdit && (
-                      <button
+                      <IconButton
+                        size="small"
+                        color="primary"
                         onClick={() => onEdit(item)}
-                        style={{
-                          marginRight: '8px',
-                          padding: '6px 12px',
-                          cursor: 'pointer',
-                        }}
+                        sx={{ mr: 1 }}
                       >
-                        Edit
-                      </button>
+                        <EditIcon fontSize="small" />
+                      </IconButton>
                     )}
                     {onDelete && (
-                      <button
+                      <IconButton
+                        size="small"
+                        color="error"
                         onClick={() => onDelete(item)}
-                        style={{
-                          padding: '6px 12px',
-                          cursor: 'pointer',
-                          backgroundColor: '#dc3545',
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '4px',
-                        }}
                       >
-                        Delete
-                      </button>
+                        <DeleteIcon fontSize="small" />
+                      </IconButton>
                     )}
-                  </td>
+                  </TableCell>
                 )}
-              </tr>
+              </TableRow>
             ))
           )}
-        </tbody>
-      </table>
-    </div>
+        </TableBody>
+      </Table>
+    </TableContainer>
   );
 }

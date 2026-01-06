@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Container, Box, Typography, Button, Paper, TextField, Stack } from '@mui/material';
 import { useSkillProfiles } from '../hooks/useSkillProfiles';
 import { DataTable } from '../components/DataTable';
 import { Loading } from '../components/Loading';
@@ -65,87 +66,52 @@ export function SkillProfilesPage() {
   if (error) return <ErrorMessage message={error} />;
 
   return (
-    <div style={{ padding: '20px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-        <h1>Skill Profiles</h1>
-        <button
-          onClick={handleCreate}
-          style={{
-            padding: '10px 20px',
-            backgroundColor: '#007bff',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: 'pointer',
-          }}
-        >
+    <Container maxWidth="lg" sx={{ py: 4 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+        <Typography variant="h4" component="h1">
+          Skill Profiles
+        </Typography>
+        <Button variant="contained" color="primary" onClick={handleCreate}>
           Add Skill Profile
-        </button>
-      </div>
+        </Button>
+      </Box>
 
       {showForm && (
-        <div
-          style={{
-            marginBottom: '20px',
-            padding: '20px',
-            border: '1px solid #ddd',
-            borderRadius: '4px',
-            backgroundColor: '#f9f9f9',
-          }}
-        >
-          <h2>{editingProfile ? 'Edit Skill Profile' : 'New Skill Profile'}</h2>
+        <Paper sx={{ p: 3, mb: 3 }}>
+          <Typography variant="h5" component="h2" gutterBottom>
+            {editingProfile ? 'Edit Skill Profile' : 'New Skill Profile'}
+          </Typography>
           <form onSubmit={handleSubmit}>
-            <div style={{ marginBottom: '10px' }}>
-              <label style={{ display: 'block', marginBottom: '5px' }}>Name *</label>
-              <input
-                type="text"
+            <Stack spacing={2}>
+              <TextField
+                label="Name"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 required
-                style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
+                fullWidth
+                variant="outlined"
+                size="small"
               />
-            </div>
-            <div style={{ marginBottom: '10px' }}>
-              <label style={{ display: 'block', marginBottom: '5px' }}>Description</label>
-              <textarea
+              <TextField
+                label="Description"
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                multiline
                 rows={3}
-                style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
+                fullWidth
+                variant="outlined"
               />
-            </div>
-            <div style={{ marginTop: '15px' }}>
-              <button
-                type="submit"
-                style={{
-                  padding: '10px 20px',
-                  backgroundColor: '#28a745',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                  marginRight: '10px',
-                }}
-              >
-                Save
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowForm(false)}
-                style={{
-                  padding: '10px 20px',
-                  backgroundColor: '#6c757d',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                }}
-              >
-                Cancel
-              </button>
-            </div>
+              <Stack direction="row" spacing={2} sx={{ mt: 2 }}>
+                <Button type="submit" variant="contained" color="success">
+                  Save
+                </Button>
+                <Button variant="outlined" color="secondary" onClick={() => setShowForm(false)}>
+                  Cancel
+                </Button>
+              </Stack>
+            </Stack>
           </form>
-        </div>
+        </Paper>
       )}
 
       <DataTable
@@ -154,6 +120,6 @@ export function SkillProfilesPage() {
         onEdit={handleEdit}
         onDelete={handleDelete}
       />
-    </div>
+    </Container>
   );
 }
