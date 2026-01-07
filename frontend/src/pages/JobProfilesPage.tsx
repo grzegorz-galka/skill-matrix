@@ -1,17 +1,17 @@
 import { useState } from 'react';
 import { Container, Box, Typography, Button, Paper, TextField, Stack } from '@mui/material';
-import { useSkillProfiles } from '../hooks/useSkillProfiles';
+import { useJobProfiles } from '../hooks/useJobProfiles';
 import { DataTable } from '../components/DataTable';
 import { Loading } from '../components/Loading';
 import { ErrorMessage } from '../components/ErrorMessage';
-import { SkillProfile, SkillProfileRequest } from '../types';
-import { skillProfileService } from '../services/skillProfileService';
+import { JobProfile, JobProfileRequest } from '../types';
+import { jobProfileService } from '../services/jobProfileService';
 
-export function SkillProfilesPage() {
-  const { skillProfiles, loading, error, refetch } = useSkillProfiles();
+export function JobProfilesPage() {
+  const { jobProfiles, loading, error, refetch } = useJobProfiles();
   const [showForm, setShowForm] = useState(false);
-  const [editingProfile, setEditingProfile] = useState<SkillProfile | null>(null);
-  const [formData, setFormData] = useState<SkillProfileRequest>({
+  const [editingProfile, setEditingProfile] = useState<JobProfile | null>(null);
+  const [formData, setFormData] = useState<JobProfileRequest>({
     name: '',
     description: '',
   });
@@ -22,7 +22,7 @@ export function SkillProfilesPage() {
     setShowForm(true);
   };
 
-  const handleEdit = (profile: SkillProfile) => {
+  const handleEdit = (profile: JobProfile) => {
     setEditingProfile(profile);
     setFormData({
       name: profile.name,
@@ -31,13 +31,13 @@ export function SkillProfilesPage() {
     setShowForm(true);
   };
 
-  const handleDelete = async (profile: SkillProfile) => {
-    if (confirm(`Delete skill profile ${profile.name}?`)) {
+  const handleDelete = async (profile: JobProfile) => {
+    if (confirm(`Delete job profile ${profile.name}?`)) {
       try {
-        await skillProfileService.delete(profile.id);
+        await jobProfileService.delete(profile.id);
         refetch();
       } catch (err) {
-        alert('Failed to delete skill profile');
+        alert('Failed to delete job profile');
       }
     }
   };
@@ -46,14 +46,14 @@ export function SkillProfilesPage() {
     e.preventDefault();
     try {
       if (editingProfile) {
-        await skillProfileService.update(editingProfile.id, formData);
+        await jobProfileService.update(editingProfile.id, formData);
       } else {
-        await skillProfileService.create(formData);
+        await jobProfileService.create(formData);
       }
       setShowForm(false);
       refetch();
     } catch (err) {
-      alert('Failed to save skill profile');
+      alert('Failed to save job profile');
     }
   };
 
@@ -69,17 +69,17 @@ export function SkillProfilesPage() {
     <Container maxWidth="lg" sx={{ py: 4 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h4" component="h1">
-          Skill Profiles
+          Job Profiles
         </Typography>
         <Button variant="contained" color="primary" onClick={handleCreate}>
-          Add Skill Profile
+          Add Job Profile
         </Button>
       </Box>
 
       {showForm && (
         <Paper sx={{ p: 3, mb: 3 }}>
           <Typography variant="h5" component="h2" gutterBottom>
-            {editingProfile ? 'Edit Skill Profile' : 'New Skill Profile'}
+            {editingProfile ? 'Edit Job Profile' : 'New Job Profile'}
           </Typography>
           <form onSubmit={handleSubmit}>
             <Stack spacing={2}>
@@ -115,7 +115,7 @@ export function SkillProfilesPage() {
       )}
 
       <DataTable
-        data={skillProfiles}
+        data={jobProfiles}
         columns={columns}
         onEdit={handleEdit}
         onDelete={handleDelete}

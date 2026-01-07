@@ -1,16 +1,9 @@
 import api from './api';
-import { Skill, SkillRequest } from '../types';
+import { JobProfile, Skill, SkillRequest } from '../types';
 
 export const skillService = {
   getAll: async (): Promise<Skill[]> => {
     const response = await api.get<Skill[]>('/skills');
-    return response.data;
-  },
-
-  getByProfileId: async (profileId: number): Promise<Skill[]> => {
-    const response = await api.get<Skill[]>('/skills', {
-      params: { profileId },
-    });
     return response.data;
   },
 
@@ -31,5 +24,19 @@ export const skillService = {
 
   delete: async (id: number): Promise<void> => {
     await api.delete(`/skills/${id}`);
+  },
+
+  // Job profile association methods
+  getJobProfiles: async (skillId: number): Promise<JobProfile[]> => {
+    const response = await api.get<JobProfile[]>(`/skills/${skillId}/job-profiles`);
+    return response.data;
+  },
+
+  addJobProfile: async (skillId: number, jobProfileId: number): Promise<void> => {
+    await api.post(`/skills/${skillId}/job-profiles/${jobProfileId}`);
+  },
+
+  removeJobProfile: async (skillId: number, jobProfileId: number): Promise<void> => {
+    await api.delete(`/skills/${skillId}/job-profiles/${jobProfileId}`);
   },
 };

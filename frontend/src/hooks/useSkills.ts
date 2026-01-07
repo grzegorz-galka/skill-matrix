@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Skill } from '../types';
 import { skillService } from '../services/skillService';
 
-export function useSkills(profileId?: number) {
+export function useSkills() {
   const [skills, setSkills] = useState<Skill[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -10,9 +10,7 @@ export function useSkills(profileId?: number) {
   const fetchSkills = async () => {
     try {
       setLoading(true);
-      const data = profileId
-        ? await skillService.getByProfileId(profileId)
-        : await skillService.getAll();
+      const data = await skillService.getAll();
       setSkills(data);
       setError(null);
     } catch (err) {
@@ -25,7 +23,7 @@ export function useSkills(profileId?: number) {
 
   useEffect(() => {
     fetchSkills();
-  }, [profileId]);
+  }, []);
 
   return { skills, loading, error, refetch: fetchSkills };
 }
@@ -35,29 +33,29 @@ export function useSkill(id: number | null) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const fetchSkill = async () => {
     if (id === null) {
       setSkill(null);
       setLoading(false);
       return;
     }
 
-    const fetchSkill = async () => {
-      try {
-        setLoading(true);
-        const data = await skillService.getById(id);
-        setSkill(data);
-        setError(null);
-      } catch (err) {
-        setError('Failed to fetch skill');
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
+    try {
+      setLoading(true);
+      const data = await skillService.getById(id);
+      setSkill(data);
+      setError(null);
+    } catch (err) {
+      setError('Failed to fetch skill');
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchSkill();
   }, [id]);
 
-  return { skill, loading, error };
+  return { skill, loading, error, refetch: fetchSkill };
 }

@@ -1,17 +1,33 @@
-import { useState } from 'react';
-import { Container, Box, Typography, Button, Paper, TextField, Stack } from '@mui/material';
+import { useState, useEffect } from 'react';
+import {
+  Container,
+  Box,
+  Typography,
+  Button,
+  Paper,
+  TextField,
+  Stack,
+  Chip,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+} from '@mui/material';
 import { useEmployees } from '../hooks/useEmployees';
+import { useJobProfiles } from '../hooks/useJobProfiles';
 import { DataTable } from '../components/DataTable';
 import { Loading } from '../components/Loading';
 import { ErrorMessage } from '../components/ErrorMessage';
-import { Employee, EmployeeRequest } from '../types';
+import { Employee, EmployeeRequest, JobProfile } from '../types';
 import { employeeService } from '../services/employeeService';
 
 export function EmployeesPage() {
   const [page] = useState(0);
   const { employees, loading, error, refetch } = useEmployees(page, 20);
+  const { jobProfiles } = useJobProfiles();
   const [showForm, setShowForm] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
+  const [employeeJobProfiles, setEmployeeJobProfiles] = useState<JobProfile[]>([]);
   const [formData, setFormData] = useState<EmployeeRequest>({
     firstName: '',
     lastName: '',
@@ -20,8 +36,20 @@ export function EmployeesPage() {
     position: '',
   });
 
+  // Fetch employee job profiles when editing
+  useEffect(() => {
+    if (editingEmployee) {
+      employeeService.getJobProfiles(editingEmployee.id)
+        .then(setEmployeeJobProfiles)
+        .catch(err => console.error('Failed to fetch employee job profiles:', err));
+    } else {
+      setEmployeeJobProfiles([]);
+    }
+  }, [editingEmployee]);
+
   const handleCreate = () => {
     setEditingEmployee(null);
+    setEmployeeJobProfiles([]);
     setFormData({
       firstName: '',
       lastName: '',
@@ -67,6 +95,34 @@ export function EmployeesPage() {
       refetch();
     } catch (err) {
       alert('Failed to save employee');
+    }
+  };
+
+  const handleAddJobProfile = async (jobProfileId: number) => {
+    if (!editingEmployee) return;
+
+    try {
+      await employeeService.assignJobProfile(editingEmployee.id, jobProfileId);
+      const updatedProfiles = await employeeService.getJobProfiles(editingEmployee.id);
+      setEmployeeJobProfiles(updatedProfiles);
+    } catch (err) {
+      alert('Failed to assign job profile');
+      console.error(err);
+    }
+  };
+
+  const handleRemoveJobProfile = async (jobProfileId: number) => {
+    if (!editingEmployee) return;
+
+    if (confirm('Remove this job profile from the employee?')) {
+      try {
+        await employeeService.removeJobProfile(editingEmployee.id, jobProfileId);
+        const updatedProfiles = await employeeService.getJobProfiles(editingEmployee.id);
+        setEmployeeJobProfiles(updatedProfiles);
+      } catch (err) {
+        alert('Failed to remove job profile');
+        console.error(err);
+      }
     }
   };
 
@@ -143,6 +199,53 @@ export function EmployeesPage() {
                 variant="outlined"
                 size="small"
               />
+
+              {/* Job Profiles Section - Only show when editing */}
+              {editingEmployee && (
+                <>
+                  <Box sx={{ mt: 2 }}>
+                    <Typography variant="subtitle2" gutterBottom>
+                      Assigned Job Profiles:
+                    </Typography>
+                    {employeeJobProfiles.length > 0 ? (
+                      <Stack direction="row" spacing={1} sx={{ mt: 1, flexWrap: 'wrap', gap: 1 }}>
+                        {employeeJobProfiles.map(jp => (
+                          <Chip
+                            key={jp.id}
+                            label={jp.name}
+                            onDelete={() => handleRemoveJobProfile(jp.id)}
+                            color="primary"
+                            variant="outlined"
+                          />
+                        ))}
+                      </Stack>
+                    ) : (
+                      <Typography variant="body2" color="text.secondary">
+                        No job profiles assigned
+                      </Typography>
+                    )}
+                  </Box>
+
+                  {/* Add Job Profile Dropdown */}
+                  <FormControl size="small" sx={{ minWidth: 250 }}>
+                    <InputLabel>Add Job Profile</InputLabel>
+                    <Select
+                      value=""
+                      label="Add Job Profile"
+                      onChange={(e) => handleAddJobProfile(Number(e.target.value))}
+                    >
+                      {jobProfiles
+                        .filter(jp => !employeeJobProfiles.some(ejp => ejp.id === jp.id))
+                        .map((profile) => (
+                          <MenuItem key={profile.id} value={profile.id}>
+                            {profile.name}
+                          </MenuItem>
+                        ))}
+                    </Select>
+                  </FormControl>
+                </>
+              )}
+
               <Stack direction="row" spacing={2} sx={{ mt: 2 }}>
                 <Button type="submit" variant="contained" color="success">
                   Save

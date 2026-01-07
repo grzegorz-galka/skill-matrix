@@ -28,7 +28,7 @@ export function Layout({ children }: LayoutProps) {
 
   const navigationItems = [
     { label: 'Employees', path: '/employees' },
-    { label: 'Skill Profiles', path: '/skill-profiles' },
+    { label: 'Job Profiles', path: '/job-profiles' },
     { label: 'Skills', path: '/skills' },
   ];
 

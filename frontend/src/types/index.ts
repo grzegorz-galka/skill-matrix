@@ -17,7 +17,7 @@ export interface EmployeeRequest {
   position?: string;
 }
 
-export interface SkillProfile {
+export interface JobProfile {
   id: number;
   name: string;
   description?: string;
@@ -25,7 +25,7 @@ export interface SkillProfile {
   updatedAt: string;
 }
 
-export interface SkillProfileRequest {
+export interface JobProfileRequest {
   name: string;
   description?: string;
 }
@@ -33,8 +33,7 @@ export interface SkillProfileRequest {
 export interface Skill {
   id: number;
   name: string;
-  skillProfileId: number;
-  skillProfileName: string;
+  jobProfiles: JobProfile[];
   description?: string;
   createdAt: string;
   updatedAt: string;
@@ -42,7 +41,6 @@ export interface Skill {
 
 export interface SkillRequest {
   name: string;
-  skillProfileId: number;
   description?: string;
 }
 

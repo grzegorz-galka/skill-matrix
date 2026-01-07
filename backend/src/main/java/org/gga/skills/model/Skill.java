@@ -2,7 +2,6 @@ package org.gga.skills.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 import java.time.LocalDateTime;
@@ -20,11 +19,6 @@ public class Skill {
     @Size(max = 100)
     @Column(name = "name", nullable = false, unique = true, length = 100)
     private String name;
-
-    @NotNull
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "skill_profile_id", nullable = false)
-    private SkillProfile skillProfile;
 
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
@@ -49,9 +43,8 @@ public class Skill {
     public Skill() {
     }
 
-    public Skill(String name, SkillProfile skillProfile) {
+    public Skill(String name) {
         this.name = name;
-        this.skillProfile = skillProfile;
     }
 
     public Long getId() {
@@ -68,14 +61,6 @@ public class Skill {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public SkillProfile getSkillProfile() {
-        return skillProfile;
-    }
-
-    public void setSkillProfile(SkillProfile skillProfile) {
-        this.skillProfile = skillProfile;
     }
 
     public String getDescription() {

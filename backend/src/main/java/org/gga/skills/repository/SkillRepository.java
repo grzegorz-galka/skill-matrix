@@ -13,6 +13,4 @@ public interface SkillRepository extends JpaRepository<Skill, Long> {
     Optional<Skill> findByName(String name);
 
     boolean existsByName(String name);
-
-    List<Skill> findBySkillProfileId(Long skillProfileId);
 }

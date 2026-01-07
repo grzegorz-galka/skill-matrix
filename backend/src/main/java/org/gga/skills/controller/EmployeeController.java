@@ -5,9 +5,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.gga.skills.dto.EmployeeRequest;
 import org.gga.skills.dto.EmployeeResponse;
-import org.gga.skills.dto.SkillProfileResponse;
+import org.gga.skills.dto.JobProfileResponse;
 import org.gga.skills.service.EmployeeService;
-import org.gga.skills.service.EmployeeSkillProfileService;
+import org.gga.skills.service.EmployeeJobProfileService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -21,12 +21,12 @@ import java.util.List;
 public class EmployeeController {
 
     private final EmployeeService employeeService;
-    private final EmployeeSkillProfileService employeeSkillProfileService;
+    private final EmployeeJobProfileService employeeJobProfileService;
 
     public EmployeeController(EmployeeService employeeService,
-                               EmployeeSkillProfileService employeeSkillProfileService) {
+                               EmployeeJobProfileService employeeJobProfileService) {
         this.employeeService = employeeService;
-        this.employeeSkillProfileService = employeeSkillProfileService;
+        this.employeeJobProfileService = employeeJobProfileService;
     }
 
     @GetMapping
@@ -62,23 +62,23 @@ public class EmployeeController {
         employeeService.deleteEmployee(id);
     }
 
-    @GetMapping("/{id}/skill-profiles")
-    @Operation(summary = "Get employee's skill profiles", description = "Get all skill profiles assigned to an employee")
-    public List<SkillProfileResponse> getEmployeeSkillProfiles(@PathVariable Long id) {
-        return employeeSkillProfileService.getSkillProfilesByEmployeeId(id);
+    @GetMapping("/{id}/job-profiles")
+    @Operation(summary = "Get employee's job profiles", description = "Get all job profiles assigned to an employee")
+    public List<JobProfileResponse> getEmployeeJobProfiles(@PathVariable Long id) {
+        return employeeJobProfileService.getJobProfilesByEmployeeId(id);
     }
 
-    @PostMapping("/{employeeId}/skill-profiles/{skillProfileId}")
+    @PostMapping("/{employeeId}/job-profiles/{jobProfileId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @Operation(summary = "Assign skill profile to employee", description = "Assign a skill profile to an employee")
-    public void assignSkillProfile(@PathVariable Long employeeId, @PathVariable Long skillProfileId) {
-        employeeSkillProfileService.assignSkillProfileToEmployee(employeeId, skillProfileId);
+    @Operation(summary = "Assign job profile to employee", description = "Assign a job profile to an employee")
+    public void assignJobProfile(@PathVariable Long employeeId, @PathVariable Long jobProfileId) {
+        employeeJobProfileService.assignJobProfileToEmployee(employeeId, jobProfileId);
     }
 
-    @DeleteMapping("/{employeeId}/skill-profiles/{skillProfileId}")
+    @DeleteMapping("/{employeeId}/job-profiles/{jobProfileId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @Operation(summary = "Remove skill profile from employee", description = "Remove a skill profile assignment from an employee")
-    public void removeSkillProfile(@PathVariable Long employeeId, @PathVariable Long skillProfileId) {
-        employeeSkillProfileService.removeSkillProfileFromEmployee(employeeId, skillProfileId);
+    @Operation(summary = "Remove job profile from employee", description = "Remove a job profile assignment from an employee")
+    public void removeJobProfile(@PathVariable Long employeeId, @PathVariable Long jobProfileId) {
+        employeeJobProfileService.removeJobProfileFromEmployee(employeeId, jobProfileId);
     }
 }

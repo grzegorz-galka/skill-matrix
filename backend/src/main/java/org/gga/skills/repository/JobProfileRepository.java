@@ -1,15 +1,15 @@
 package org.gga.skills.repository;
 
-import org.gga.skills.model.SkillProfile;
+import org.gga.skills.model.JobProfile;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
 @Repository
-public interface SkillProfileRepository extends JpaRepository<SkillProfile, Long> {
+public interface JobProfileRepository extends JpaRepository<JobProfile, Long> {
 
-    Optional<SkillProfile> findByName(String name);
+    Optional<JobProfile> findByName(String name);
 
     boolean existsByName(String name);
 }
