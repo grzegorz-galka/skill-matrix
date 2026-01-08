@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Employee, Page } from '../types';
 import { employeeService } from '../services/employeeService';
 
-export function useEmployees(page = 0, size = 20) {
+export function useEmployees(page = 0, size = 20, search?: string) {
   const [employees, setEmployees] = useState<Page<Employee> | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -10,7 +10,7 @@ export function useEmployees(page = 0, size = 20) {
   const fetchEmployees = async () => {
     try {
       setLoading(true);
-      const data = await employeeService.getAll(page, size);
+      const data = await employeeService.getAll(page, size, search);
       setEmployees(data);
       setError(null);
     } catch (err) {
@@ -23,7 +23,7 @@ export function useEmployees(page = 0, size = 20) {
 
   useEffect(() => {
     fetchEmployees();
-  }, [page, size]);
+  }, [page, size, search]);
 
   return { employees, loading, error, refetch: fetchEmployees };
 }

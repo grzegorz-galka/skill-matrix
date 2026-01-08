@@ -2,10 +2,12 @@ import api from './api';
 import { Employee, EmployeeRequest, Page, JobProfile } from '../types';
 
 export const employeeService = {
-  getAll: async (page = 0, size = 20): Promise<Page<Employee>> => {
-    const response = await api.get<Page<Employee>>('/employees', {
-      params: { page, size },
-    });
+  getAll: async (page = 0, size = 20, search?: string): Promise<Page<Employee>> => {
+    const params: any = { page, size };
+    if (search && search.trim()) {
+      params.search = search.trim();
+    }
+    const response = await api.get<Page<Employee>>('/employees', { params });
     return response.data;
   },
 

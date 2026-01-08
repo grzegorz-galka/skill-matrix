@@ -30,8 +30,13 @@ public class EmployeeController {
     }
 
     @GetMapping
-    @Operation(summary = "Get all employees", description = "Retrieve a paginated list of all employees")
-    public Page<EmployeeResponse> getAllEmployees(Pageable pageable) {
+    @Operation(summary = "Get all employees or search", description = "Retrieve a paginated list of all employees, or search by name/email if search parameter is provided")
+    public Page<EmployeeResponse> getAllEmployees(
+            @RequestParam(required = false) String search,
+            Pageable pageable) {
+        if (search != null && !search.trim().isEmpty()) {
+            return employeeService.searchEmployees(search, pageable);
+        }
         return employeeService.getAllEmployees(pageable);
     }
 
