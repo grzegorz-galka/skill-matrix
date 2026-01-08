@@ -9,13 +9,11 @@ import {
   Stack,
   Chip,
   FormControl,
-  InputLabel,
   Select,
   MenuItem,
   InputAdornment,
   Avatar,
   IconButton,
-  Grid,
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import PeopleIcon from '@mui/icons-material/People';
@@ -36,7 +34,8 @@ import { employeeService } from '../services/employeeService';
 export function EmployeesPage() {
   const [page] = useState(0);
   const [searchTerm, setSearchTerm] = useState('');
-  const { employees, loading, error, refetch } = useEmployees(page, 20, searchTerm);
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+  const { employees, loading, error, refetch } = useEmployees(page, 20, debouncedSearchTerm);
   const { jobProfiles } = useJobProfiles();
   const [showForm, setShowForm] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
@@ -48,6 +47,15 @@ export function EmployeesPage() {
     department: '',
     position: '',
   });
+
+  // Debounce search term to avoid triggering API calls on every keystroke
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
 
   // Fetch employee job profiles when editing
   useEffect(() => {
@@ -189,9 +197,9 @@ export function EmployeesPage() {
         </Box>
 
         {/* Two Column Layout */}
-        <Grid container spacing={3}>
+        <Box sx={{ display: 'flex', gap: 3, flexWrap: 'wrap' }}>
           {/* Left Column - Employee List */}
-          <Grid item xs={12} md={showForm ? 6 : 12}>
+          <Box sx={{ flex: showForm ? '1 1 calc(50% - 12px)' : '1 1 100%', minWidth: 0 }}>
             <Paper sx={{ p: 3, borderRadius: 2 }}>
               {/* List Header */}
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
@@ -296,11 +304,11 @@ export function EmployeesPage() {
                 </Typography>
               )}
             </Paper>
-          </Grid>
+          </Box>
 
           {/* Right Column - Edit Form */}
           {showForm && (
-            <Grid item xs={12} md={6}>
+            <Box sx={{ flex: '1 1 calc(50% - 12px)', minWidth: 0 }}>
               <Paper sx={{ p: 3, borderRadius: 2 }}>
                 {/* Form Header */}
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
@@ -499,9 +507,9 @@ export function EmployeesPage() {
                   </Stack>
                 </form>
               </Paper>
-            </Grid>
+            </Box>
           )}
-        </Grid>
+        </Box>
       </Container>
     </Box>
   );

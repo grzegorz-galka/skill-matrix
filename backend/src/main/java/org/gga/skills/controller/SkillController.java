@@ -8,6 +8,7 @@ import org.gga.skills.dto.SkillRequest;
 import org.gga.skills.dto.SkillResponse;
 import org.gga.skills.service.JobProfileSkillService;
 import org.gga.skills.service.SkillService;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -29,13 +30,9 @@ public class SkillController {
     }
 
     @GetMapping
-    @Operation(summary = "Get all skills", description = "Retrieve all skills with optional pagination")
-    public List<SkillResponse> getAllSkills(@RequestParam(required = false) Boolean paginated,
-                                            Pageable pageable) {
-        if (Boolean.TRUE.equals(paginated)) {
-            return skillService.getAllSkills(pageable).getContent();
-        }
-        return skillService.getAllSkills();
+    @Operation(summary = "Get all skills", description = "Retrieve all skills with pagination")
+    public Page<SkillResponse> getAllSkills(Pageable pageable) {
+        return skillService.getAllSkills(pageable);
     }
 
     @GetMapping("/{id}")
