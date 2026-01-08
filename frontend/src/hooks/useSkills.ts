@@ -1,16 +1,16 @@
 import { useState, useEffect } from 'react';
-import { Skill } from '../types';
+import { Skill, Page } from '../types';
 import { skillService } from '../services/skillService';
 
-export function useSkills() {
-  const [skills, setSkills] = useState<Skill[]>([]);
+export function useSkills(page = 0, size = 20) {
+  const [skills, setSkills] = useState<Page<Skill> | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const fetchSkills = async () => {
     try {
       setLoading(true);
-      const data = await skillService.getAll();
+      const data = await skillService.getAll(page, size);
       setSkills(data);
       setError(null);
     } catch (err) {
@@ -23,7 +23,7 @@ export function useSkills() {
 
   useEffect(() => {
     fetchSkills();
-  }, []);
+  }, [page, size]);
 
   return { skills, loading, error, refetch: fetchSkills };
 }

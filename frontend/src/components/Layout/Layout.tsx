@@ -31,6 +31,7 @@ export function Layout({ children }: LayoutProps) {
     { label: 'Employees', path: '/employees' },
     { label: 'Job Profiles', path: '/job-profiles' },
     { label: 'Skills', path: '/skills' },
+    { label: 'Employee Skills', path: '/employee-skills' },
   ];
 
   const handleDrawerToggle = () => {

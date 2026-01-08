@@ -34,6 +34,7 @@ export interface Skill {
   id: number;
   name: string;
   jobProfiles: JobProfile[];
+  grades: SkillGrade[];
   description?: string;
   createdAt: string;
   updatedAt: string;

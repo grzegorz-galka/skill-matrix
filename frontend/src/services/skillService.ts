@@ -1,8 +1,14 @@
 import api from './api';
-import { JobProfile, Skill, SkillRequest } from '../types';
+import { JobProfile, Skill, SkillRequest, Page } from '../types';
 
 export const skillService = {
-  getAll: async (): Promise<Skill[]> => {
+  getAll: async (page = 0, size = 20): Promise<Page<Skill>> => {
+    const params = { page, size };
+    const response = await api.get<Page<Skill>>('/skills', { params });
+    return response.data;
+  },
+
+  getAllUnpaginated: async (): Promise<Skill[]> => {
     const response = await api.get<Skill[]>('/skills');
     return response.data;
   },
