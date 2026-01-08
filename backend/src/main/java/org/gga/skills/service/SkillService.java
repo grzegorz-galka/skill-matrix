@@ -2,9 +2,9 @@ package org.gga.skills.service;
 
 import org.gga.skills.dto.SkillRequest;
 import org.gga.skills.dto.SkillResponse;
+import org.gga.skills.model.JobProfile;
 import org.gga.skills.model.Skill;
-import org.gga.skills.model.SkillProfile;
-import org.gga.skills.repository.SkillProfileRepository;
+import org.gga.skills.repository.JobProfileSkillRepository;
 import org.gga.skills.repository.SkillRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -18,37 +18,47 @@ import java.util.List;
 public class SkillService {
 
     private final SkillRepository skillRepository;
-    private final SkillProfileRepository skillProfileRepository;
+    private final JobProfileSkillRepository jobProfileSkillRepository;
 
-    public SkillService(SkillRepository skillRepository, SkillProfileRepository skillProfileRepository) {
+    public SkillService(SkillRepository skillRepository,
+                       JobProfileSkillRepository jobProfileSkillRepository) {
         this.skillRepository = skillRepository;
-        this.skillProfileRepository = skillProfileRepository;
+        this.jobProfileSkillRepository = jobProfileSkillRepository;
     }
 
     public List<SkillResponse> getAllSkills() {
         return skillRepository.findAll().stream()
-                .map(SkillResponse::fromEntity)
+                .map(skill -> {
+                    List<JobProfile> jobProfiles = jobProfileSkillRepository.findBySkillId(skill.getId())
+                            .stream()
+                            .map(jps -> jps.getJobProfile())
+                            .toList();
+                    return SkillResponse.fromEntity(skill, jobProfiles);
+                })
                 .toList();
     }
 
     public Page<SkillResponse> getAllSkills(Pageable pageable) {
         return skillRepository.findAll(pageable)
-                .map(SkillResponse::fromEntity);
+                .map(skill -> {
+                    List<JobProfile> jobProfiles = jobProfileSkillRepository.findBySkillId(skill.getId())
+                            .stream()
+                            .map(jps -> jps.getJobProfile())
+                            .toList();
+                    return SkillResponse.fromEntity(skill, jobProfiles);
+                });
     }
 
     public SkillResponse getSkillById(Long id) {
         Skill skill = skillRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Skill not found with id: " + id));
-        return SkillResponse.fromEntity(skill);
-    }
 
-    public List<SkillResponse> getSkillsByProfileId(Long profileId) {
-        if (!skillProfileRepository.existsById(profileId)) {
-            throw new ResourceNotFoundException("Skill profile not found with id: " + profileId);
-        }
-        return skillRepository.findBySkillProfileId(profileId).stream()
-                .map(SkillResponse::fromEntity)
+        List<JobProfile> jobProfiles = jobProfileSkillRepository.findBySkillId(id)
+                .stream()
+                .map(jps -> jps.getJobProfile())
                 .toList();
+
+        return SkillResponse.fromEntity(skill, jobProfiles);
     }
 
     @Transactional
@@ -57,14 +67,13 @@ public class SkillService {
             throw new DuplicateResourceException("Skill with name " + request.name() + " already exists");
         }
 
-        SkillProfile skillProfile = skillProfileRepository.findById(request.skillProfileId())
-                .orElseThrow(() -> new ResourceNotFoundException("Skill profile not found with id: " + request.skillProfileId()));
-
-        Skill skill = new Skill(request.name(), skillProfile);
+        Skill skill = new Skill(request.name());
         skill.setDescription(request.description());
 
         Skill saved = skillRepository.save(skill);
-        return SkillResponse.fromEntity(saved);
+
+        // Return skill with empty job profiles list
+        return SkillResponse.fromEntity(saved, List.of());
     }
 
     @Transactional
@@ -77,15 +86,18 @@ public class SkillService {
             throw new DuplicateResourceException("Skill with name " + request.name() + " already exists");
         }
 
-        SkillProfile skillProfile = skillProfileRepository.findById(request.skillProfileId())
-                .orElseThrow(() -> new ResourceNotFoundException("Skill profile not found with id: " + request.skillProfileId()));
-
         skill.setName(request.name());
-        skill.setSkillProfile(skillProfile);
         skill.setDescription(request.description());
 
         Skill updated = skillRepository.save(skill);
-        return SkillResponse.fromEntity(updated);
+
+        // Fetch associated job profiles
+        List<JobProfile> jobProfiles = jobProfileSkillRepository.findBySkillId(id)
+                .stream()
+                .map(jps -> jps.getJobProfile())
+                .toList();
+
+        return SkillResponse.fromEntity(updated, jobProfiles);
     }
 
     @Transactional

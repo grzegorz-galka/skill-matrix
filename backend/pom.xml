@@ -106,6 +106,20 @@
                     <parameters>true</parameters>
                 </configuration>
             </plugin>
+
+            <plugin>
+                <groupId>org.flywaydb</groupId>
+                <artifactId>flyway-maven-plugin</artifactId>
+                <version>11.20.0</version>
+                <configuration>
+                    <url>jdbc:postgresql://localhost:5432/skills_db</url>
+                    <user>skills_user</user>
+                    <password>skills_pass</password>
+                    <locations>
+                        <location>filesystem:src/main/resources/db/migration</location>
+                    </locations>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 </project>

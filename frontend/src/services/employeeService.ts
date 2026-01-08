@@ -1,11 +1,13 @@
 import api from './api';
-import { Employee, EmployeeRequest, Page, SkillProfile } from '../types';
+import { Employee, EmployeeRequest, Page, JobProfile } from '../types';
 
 export const employeeService = {
-  getAll: async (page = 0, size = 20): Promise<Page<Employee>> => {
-    const response = await api.get<Page<Employee>>('/employees', {
-      params: { page, size },
-    });
+  getAll: async (page = 0, size = 20, search?: string): Promise<Page<Employee>> => {
+    const params: any = { page, size };
+    if (search && search.trim()) {
+      params.search = search.trim();
+    }
+    const response = await api.get<Page<Employee>>('/employees', { params });
     return response.data;
   },
 
@@ -28,16 +30,16 @@ export const employeeService = {
     await api.delete(`/employees/${id}`);
   },
 
-  getSkillProfiles: async (id: number): Promise<SkillProfile[]> => {
-    const response = await api.get<SkillProfile[]>(`/employees/${id}/skill-profiles`);
+  getJobProfiles: async (id: number): Promise<JobProfile[]> => {
+    const response = await api.get<JobProfile[]>(`/employees/${id}/job-profiles`);
     return response.data;
   },
 
-  assignSkillProfile: async (employeeId: number, skillProfileId: number): Promise<void> => {
-    await api.post(`/employees/${employeeId}/skill-profiles/${skillProfileId}`);
+  assignJobProfile: async (employeeId: number, jobProfileId: number): Promise<void> => {
+    await api.post(`/employees/${employeeId}/job-profiles/${jobProfileId}`);
   },
 
-  removeSkillProfile: async (employeeId: number, skillProfileId: number): Promise<void> => {
-    await api.delete(`/employees/${employeeId}/skill-profiles/${skillProfileId}`);
+  removeJobProfile: async (employeeId: number, jobProfileId: number): Promise<void> => {
+    await api.delete(`/employees/${employeeId}/job-profiles/${jobProfileId}`);
   },
 };

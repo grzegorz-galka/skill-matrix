@@ -7,10 +7,10 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 
 @Entity
-@Table(name = "employee_skill_profile", uniqueConstraints = {
-    @UniqueConstraint(name = "uk_employee_skill_profile", columnNames = {"employee_id", "skill_profile_id"})
+@Table(name = "job_profile_skill", uniqueConstraints = {
+    @UniqueConstraint(name = "uk_job_profile_skill", columnNames = {"job_profile_id", "skill_id"})
 })
-public class EmployeeSkillProfile {
+public class JobProfileSkill {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -18,13 +18,13 @@ public class EmployeeSkillProfile {
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "employee_id", nullable = false)
-    private Employee employee;
+    @JoinColumn(name = "job_profile_id", nullable = false)
+    private JobProfile jobProfile;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "skill_profile_id", nullable = false)
-    private SkillProfile skillProfile;
+    @JoinColumn(name = "skill_id", nullable = false)
+    private Skill skill;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -34,12 +34,12 @@ public class EmployeeSkillProfile {
         createdAt = LocalDateTime.now();
     }
 
-    public EmployeeSkillProfile() {
+    public JobProfileSkill() {
     }
 
-    public EmployeeSkillProfile(Employee employee, SkillProfile skillProfile) {
-        this.employee = employee;
-        this.skillProfile = skillProfile;
+    public JobProfileSkill(JobProfile jobProfile, Skill skill) {
+        this.jobProfile = jobProfile;
+        this.skill = skill;
     }
 
     public Long getId() {
@@ -50,20 +50,20 @@ public class EmployeeSkillProfile {
         this.id = id;
     }
 
-    public Employee getEmployee() {
-        return employee;
+    public JobProfile getJobProfile() {
+        return jobProfile;
     }
 
-    public void setEmployee(Employee employee) {
-        this.employee = employee;
+    public void setJobProfile(JobProfile jobProfile) {
+        this.jobProfile = jobProfile;
     }
 
-    public SkillProfile getSkillProfile() {
-        return skillProfile;
+    public Skill getSkill() {
+        return skill;
     }
 
-    public void setSkillProfile(SkillProfile skillProfile) {
-        this.skillProfile = skillProfile;
+    public void setSkill(Skill skill) {
+        this.skill = skill;
     }
 
     public LocalDateTime getCreatedAt() {
@@ -74,7 +74,7 @@ public class EmployeeSkillProfile {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        EmployeeSkillProfile that = (EmployeeSkillProfile) o;
+        JobProfileSkill that = (JobProfileSkill) o;
         return Objects.equals(id, that.id);
     }
 
@@ -85,10 +85,10 @@ public class EmployeeSkillProfile {
 
     @Override
     public String toString() {
-        return "EmployeeSkillProfile{" +
+        return "JobProfileSkill{" +
                 "id=" + id +
-                ", employeeId=" + (employee != null ? employee.getId() : null) +
-                ", skillProfileId=" + (skillProfile != null ? skillProfile.getId() : null) +
+                ", jobProfileId=" + (jobProfile != null ? jobProfile.getId() : null) +
+                ", skillId=" + (skill != null ? skill.getId() : null) +
                 '}';
     }
 }

@@ -16,6 +16,7 @@ import {
   useMediaQuery,
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 
 interface LayoutProps {
   children: ReactNode;
@@ -28,7 +29,7 @@ export function Layout({ children }: LayoutProps) {
 
   const navigationItems = [
     { label: 'Employees', path: '/employees' },
-    { label: 'Skill Profiles', path: '/skill-profiles' },
+    { label: 'Job Profiles', path: '/job-profiles' },
     { label: 'Skills', path: '/skills' },
   ];
 
@@ -43,8 +44,8 @@ export function Layout({ children }: LayoutProps) {
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       {/* AppBar */}
-      <AppBar position="static" sx={{ bgcolor: '#212121' }}>
-        <Toolbar>
+      <AppBar position="static" sx={{ bgcolor: '#0f172a', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}>
+        <Toolbar sx={{ py: 0.5 }}>
           {isMobile && (
             <IconButton
               edge="start"
@@ -56,27 +57,45 @@ export function Layout({ children }: LayoutProps) {
               <MenuIcon />
             </IconButton>
           )}
-          <Typography
-            variant="h6"
+          <Box
             component={Link}
             to="/"
             sx={{
-              flexGrow: isMobile ? 1 : 0,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1,
               textDecoration: 'none',
               color: 'inherit',
-              fontWeight: 'bold',
+              flexGrow: isMobile ? 1 : 0,
             }}
           >
-            Skills Matrix
-          </Typography>
+            <AutoAwesomeIcon sx={{ fontSize: 32, color: '#60a5fa' }} />
+            <Typography
+              variant="h6"
+              sx={{
+                fontWeight: 'bold',
+                fontSize: '1.5rem',
+              }}
+            >
+              Skills Matrix
+            </Typography>
+          </Box>
           {!isMobile && (
-            <Box sx={{ display: 'flex', gap: 2, ml: 4 }}>
+            <Box sx={{ display: 'flex', gap: 3, ml: 6 }}>
               {navigationItems.map((item) => (
                 <Button
                   key={item.path}
-                  color="inherit"
                   component={Link}
                   to={item.path}
+                  sx={{
+                    color: '#cbd5e1',
+                    textTransform: 'none',
+                    fontSize: '1rem',
+                    '&:hover': {
+                      color: 'white',
+                      bgcolor: 'transparent',
+                    },
+                  }}
                 >
                   {item.label}
                 </Button>
@@ -114,14 +133,13 @@ export function Layout({ children }: LayoutProps) {
       <Box
         component="footer"
         sx={{
-          borderTop: 1,
-          borderColor: 'divider',
-          py: 2,
+          bgcolor: '#0f172a',
+          py: 4,
           textAlign: 'center',
-          bgcolor: 'grey.50',
+          mt: 'auto',
         }}
       >
-        <Typography variant="body2" color="text.secondary">
+        <Typography variant="body2" sx={{ color: '#94a3b8' }}>
           Employee Skills Management System
         </Typography>
       </Box>

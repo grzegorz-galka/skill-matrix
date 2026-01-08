@@ -8,13 +8,8 @@ import {
   Paper,
   TextField,
   Stack,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
 } from '@mui/material';
 import { useSkills } from '../hooks/useSkills';
-import { useSkillProfiles } from '../hooks/useSkillProfiles';
 import { DataTable } from '../components/DataTable';
 import { Loading } from '../components/Loading';
 import { ErrorMessage } from '../components/ErrorMessage';
@@ -24,16 +19,14 @@ import { skillService } from '../services/skillService';
 export function SkillsPage() {
   const navigate = useNavigate();
   const { skills, loading, error, refetch } = useSkills();
-  const { skillProfiles } = useSkillProfiles();
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState<SkillRequest>({
     name: '',
-    skillProfileId: 0,
     description: '',
   });
 
   const handleCreate = () => {
-    setFormData({ name: '', skillProfileId: 0, description: '' });
+    setFormData({ name: '', description: '' });
     setShowForm(true);
   };
 
@@ -63,9 +56,17 @@ export function SkillsPage() {
     }
   };
 
+  // Transform skills to add job profiles display column
+  const skillsWithDisplay = skills.map(skill => ({
+    ...skill,
+    jobProfilesDisplay: skill.jobProfiles?.length > 0
+      ? skill.jobProfiles.map(jp => jp.name).join(', ')
+      : 'None'
+  }));
+
   const columns = [
     { key: 'name', header: 'Name' },
-    { key: 'skillProfileName', header: 'Skill Profile' },
+    { key: 'jobProfilesDisplay', header: 'Job Profiles' },
     { key: 'description', header: 'Description' },
   ];
 
@@ -99,21 +100,6 @@ export function SkillsPage() {
                 variant="outlined"
                 size="small"
               />
-              <FormControl fullWidth variant="outlined" size="small" required>
-                <InputLabel>Skill Profile</InputLabel>
-                <Select
-                  label="Skill Profile"
-                  value={formData.skillProfileId}
-                  onChange={(e) => setFormData({ ...formData, skillProfileId: Number(e.target.value) })}
-                >
-                  <MenuItem value={0}>Select a skill profile</MenuItem>
-                  {skillProfiles.map((profile) => (
-                    <MenuItem key={profile.id} value={profile.id}>
-                      {profile.name}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
               <TextField
                 label="Description"
                 value={formData.description}
@@ -137,7 +123,7 @@ export function SkillsPage() {
       )}
 
       <DataTable
-        data={skills}
+        data={skillsWithDisplay}
         columns={columns}
         onEdit={handleEdit}
         onDelete={handleDelete}

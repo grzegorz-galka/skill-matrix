@@ -41,6 +41,21 @@ public class EmployeeService {
                 .map(EmployeeResponse::fromEntity);
     }
 
+    /**
+     * Search employees by first name, last name, or email using partial match.
+     *
+     * @param searchTerm the search term to match (case-insensitive)
+     * @param pageable pagination information
+     * @return page of employees matching the search criteria
+     */
+    public Page<EmployeeResponse> searchEmployees(String searchTerm, Pageable pageable) {
+        if (searchTerm == null || searchTerm.trim().isEmpty()) {
+            return getAllEmployees(pageable);
+        }
+        return employeeRepository.searchEmployees(searchTerm.trim(), pageable)
+                .map(EmployeeResponse::fromEntity);
+    }
+
     @Transactional
     public EmployeeResponse createEmployee(EmployeeRequest request) {
         if (employeeRepository.existsByEmail(request.email())) {
