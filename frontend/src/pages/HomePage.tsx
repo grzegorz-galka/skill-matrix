@@ -6,6 +6,8 @@ import {
   EmojiEvents as AwardIcon,
   ArrowForward as ArrowRightIcon,
   AutoAwesome as SparklesIcon,
+  School as SchoolIcon,
+  GridView as GridViewIcon,
 } from '@mui/icons-material';
 
 export function HomePage() {
@@ -22,9 +24,9 @@ export function HomePage() {
     },
     {
       icon: <TargetIcon sx={{ fontSize: 32 }} />,
-      title: 'Job Profiles',
+      title: 'Skill Profiles',
       description: 'Define groups of related skills and create comprehensive skill profiles for different roles.',
-      link: '/job-profiles',
+      link: '/skill-profiles',
       linkText: 'Create Profiles',
       color: '#6366f1', // indigo-600
       bgColor: '#e0e7ff', // indigo-100
@@ -40,12 +42,32 @@ export function HomePage() {
       bgColor: '#f3e8ff', // purple-100
       borderColor: '#a855f7',
     },
+    {
+      icon: <SchoolIcon sx={{ fontSize: 32 }} />,
+      title: 'Assess Skills',
+      description: 'Evaluate and assign skill grades to employees. Track proficiency levels and certifications.',
+      link: '/employee-skills',
+      linkText: 'Assess Skills',
+      color: '#10b981', // emerald-500
+      bgColor: '#d1fae5', // emerald-100
+      borderColor: '#10b981',
+    },
+    {
+      icon: <GridViewIcon sx={{ fontSize: 32 }} />,
+      title: 'Skills Matrix',
+      description: 'View a comprehensive matrix of employee skills. Export reports and analyze team capabilities.',
+      link: '/skills-matrix',
+      linkText: 'View Matrix',
+      color: '#f59e0b', // amber-500
+      bgColor: '#fef3c7', // amber-100
+      borderColor: '#f59e0b',
+    },
   ];
 
   const steps = [
     {
       number: '1',
-      title: 'Create Job Profiles to group related skills',
+      title: 'Create Skill Profiles to group related skills',
       description: 'Define the core competencies and skill groups needed for your organization.',
     },
     {
@@ -60,7 +82,7 @@ export function HomePage() {
     },
     {
       number: '4',
-      title: 'Assign job profiles to employees',
+      title: 'Assign skill profiles to employees',
       description: 'Match employees with the right skill profiles to identify gaps and growth opportunities.',
     },
   ];

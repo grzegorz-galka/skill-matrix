@@ -10,6 +10,7 @@ public record SkillGradeResponse(
     String skillName,
     String code,
     String description,
+    Integer level,
     LocalDateTime createdAt,
     LocalDateTime updatedAt
 ) {
@@ -20,6 +21,7 @@ public record SkillGradeResponse(
             skillGrade.getSkill().getName(),
             skillGrade.getCode(),
             skillGrade.getDescription(),
+            skillGrade.getLevel(),
             skillGrade.getCreatedAt(),
             skillGrade.getUpdatedAt()
         );

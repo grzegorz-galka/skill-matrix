@@ -1,6 +1,8 @@
 package org.gga.skills.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -32,6 +34,12 @@ public class SkillGrade {
     @Column(name = "description", length = 255)
     private String description;
 
+    @NotNull
+    @Min(1)
+    @Max(5)
+    @Column(name = "level", nullable = false)
+    private Integer level = 1;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -56,6 +64,14 @@ public class SkillGrade {
         this.skill = skill;
         this.code = code;
         this.description = description;
+        this.level = 1;
+    }
+
+    public SkillGrade(Skill skill, String code, String description, Integer level) {
+        this.skill = skill;
+        this.code = code;
+        this.description = description;
+        this.level = level != null ? level : 1;
     }
 
     public Long getId() {
@@ -90,6 +106,14 @@ public class SkillGrade {
         this.description = description;
     }
 
+    public Integer getLevel() {
+        return level;
+    }
+
+    public void setLevel(Integer level) {
+        this.level = level;
+    }
+
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
@@ -117,6 +141,7 @@ public class SkillGrade {
                 "id=" + id +
                 ", code='" + code + '\'' +
                 ", description='" + description + '\'' +
+                ", level=" + level +
                 '}';
     }
 }

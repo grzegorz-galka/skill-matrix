@@ -9,13 +9,11 @@ import {
   Stack,
   Chip,
   FormControl,
-  InputLabel,
   Select,
   MenuItem,
   InputAdornment,
   Avatar,
   IconButton,
-  Grid,
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import PeopleIcon from '@mui/icons-material/People';
@@ -27,20 +25,21 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import { useEmployees } from '../hooks/useEmployees';
-import { useJobProfiles } from '../hooks/useJobProfiles';
+import { useSkillProfiles } from '../hooks/useSkillProfiles';
 import { Loading } from '../components/Loading';
 import { ErrorMessage } from '../components/ErrorMessage';
-import { Employee, EmployeeRequest, JobProfile } from '../types';
+import { Employee, EmployeeRequest, SkillProfile } from '../types';
 import { employeeService } from '../services/employeeService';
 
 export function EmployeesPage() {
   const [page] = useState(0);
   const [searchTerm, setSearchTerm] = useState('');
-  const { employees, loading, error, refetch } = useEmployees(page, 20, searchTerm);
-  const { jobProfiles } = useJobProfiles();
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+  const { employees, loading, error, refetch } = useEmployees(page, 20, debouncedSearchTerm);
+  const { skillProfiles } = useSkillProfiles();
   const [showForm, setShowForm] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
-  const [employeeJobProfiles, setEmployeeJobProfiles] = useState<JobProfile[]>([]);
+  const [employeeSkillProfiles, setEmployeeSkillProfiles] = useState<SkillProfile[]>([]);
   const [formData, setFormData] = useState<EmployeeRequest>({
     firstName: '',
     lastName: '',
@@ -49,20 +48,29 @@ export function EmployeesPage() {
     position: '',
   });
 
-  // Fetch employee job profiles when editing
+  // Debounce search term to avoid triggering API calls on every keystroke
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  // Fetch employee skill profiles when editing
   useEffect(() => {
     if (editingEmployee) {
-      employeeService.getJobProfiles(editingEmployee.id)
-        .then(setEmployeeJobProfiles)
-        .catch(err => console.error('Failed to fetch employee job profiles:', err));
+      employeeService.getSkillProfiles(editingEmployee.id)
+        .then(setEmployeeSkillProfiles)
+        .catch(err => console.error('Failed to fetch employee skill profiles:', err));
     } else {
-      setEmployeeJobProfiles([]);
+      setEmployeeSkillProfiles([]);
     }
   }, [editingEmployee]);
 
   const handleCreate = () => {
     setEditingEmployee(null);
-    setEmployeeJobProfiles([]);
+    setEmployeeSkillProfiles([]);
     setFormData({
       firstName: '',
       lastName: '',
@@ -111,29 +119,29 @@ export function EmployeesPage() {
     }
   };
 
-  const handleAddJobProfile = async (jobProfileId: number) => {
+  const handleAddSkillProfile = async (skillProfileId: number) => {
     if (!editingEmployee) return;
 
     try {
-      await employeeService.assignJobProfile(editingEmployee.id, jobProfileId);
-      const updatedProfiles = await employeeService.getJobProfiles(editingEmployee.id);
-      setEmployeeJobProfiles(updatedProfiles);
+      await employeeService.assignSkillProfile(editingEmployee.id, skillProfileId);
+      const updatedProfiles = await employeeService.getSkillProfiles(editingEmployee.id);
+      setEmployeeSkillProfiles(updatedProfiles);
     } catch (err) {
-      alert('Failed to assign job profile');
+      alert('Failed to assign skill profile');
       console.error(err);
     }
   };
 
-  const handleRemoveJobProfile = async (jobProfileId: number) => {
+  const handleRemoveSkillProfile = async (skillProfileId: number) => {
     if (!editingEmployee) return;
 
-    if (confirm('Remove this job profile from the employee?')) {
+    if (confirm('Remove this skill profile from the employee?')) {
       try {
-        await employeeService.removeJobProfile(editingEmployee.id, jobProfileId);
-        const updatedProfiles = await employeeService.getJobProfiles(editingEmployee.id);
-        setEmployeeJobProfiles(updatedProfiles);
+        await employeeService.removeSkillProfile(editingEmployee.id, skillProfileId);
+        const updatedProfiles = await employeeService.getSkillProfiles(editingEmployee.id);
+        setEmployeeSkillProfiles(updatedProfiles);
       } catch (err) {
-        alert('Failed to remove job profile');
+        alert('Failed to remove skill profile');
         console.error(err);
       }
     }
@@ -189,9 +197,9 @@ export function EmployeesPage() {
         </Box>
 
         {/* Two Column Layout */}
-        <Grid container spacing={3}>
+        <Box sx={{ display: 'flex', gap: 3, flexWrap: 'wrap' }}>
           {/* Left Column - Employee List */}
-          <Grid item xs={12} md={showForm ? 6 : 12}>
+          <Box sx={{ flex: showForm ? '1 1 calc(50% - 12px)' : '1 1 100%', minWidth: 0 }}>
             <Paper sx={{ p: 3, borderRadius: 2 }}>
               {/* List Header */}
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
@@ -296,11 +304,11 @@ export function EmployeesPage() {
                 </Typography>
               )}
             </Paper>
-          </Grid>
+          </Box>
 
           {/* Right Column - Edit Form */}
           {showForm && (
-            <Grid item xs={12} md={6}>
+            <Box sx={{ flex: '1 1 calc(50% - 12px)', minWidth: 0 }}>
               <Paper sx={{ p: 3, borderRadius: 2 }}>
                 {/* Form Header */}
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
@@ -396,18 +404,18 @@ export function EmployeesPage() {
                       />
                     </Box>
 
-                    {/* Job Profiles Section - Always show */}
+                    {/* Skill Profiles Section - Always show */}
                     <Box sx={{ mt: 1 }}>
                       <Typography variant="body2" sx={{ mb: 1.5, fontWeight: 500 }}>
-                        Assigned Job Profiles:
+                        Assigned Skill Profiles:
                       </Typography>
-                      {editingEmployee && employeeJobProfiles.length > 0 ? (
+                      {editingEmployee && employeeSkillProfiles.length > 0 ? (
                         <Stack direction="row" spacing={1} sx={{ mb: 2, flexWrap: 'wrap', gap: 1 }}>
-                          {employeeJobProfiles.map(jp => (
+                          {employeeSkillProfiles.map(sp => (
                             <Chip
-                              key={jp.id}
-                              label={jp.name}
-                              onDelete={() => handleRemoveJobProfile(jp.id)}
+                              key={sp.id}
+                              label={sp.name}
+                              onDelete={() => handleRemoveSkillProfile(sp.id)}
                               sx={{
                                 bgcolor: '#dbeafe',
                                 color: '#1e40af',
@@ -418,15 +426,15 @@ export function EmployeesPage() {
                         </Stack>
                       ) : editingEmployee ? (
                         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                          No job profiles assigned
+                          No skill profiles assigned
                         </Typography>
                       ) : (
                         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                          Save employee first to assign job profiles
+                          Save employee first to assign skill profiles
                         </Typography>
                       )}
 
-                      {/* Add Job Profile Button */}
+                      {/* Add Skill Profile Button */}
                       {editingEmployee && (
                         <Paper
                           variant="outlined"
@@ -442,17 +450,17 @@ export function EmployeesPage() {
                             <Select
                               displayEmpty
                               value=""
-                              onChange={(e) => handleAddJobProfile(Number(e.target.value))}
+                              onChange={(e) => handleAddSkillProfile(Number(e.target.value))}
                               renderValue={() => (
                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: '#6b7280' }}>
                                   <AddIcon fontSize="small" />
-                                  <span>Add Job Profile</span>
+                                  <span>Add Skill Profile</span>
                                 </Box>
                               )}
                               sx={{ border: 'none', '& fieldset': { border: 'none' } }}
                             >
-                              {jobProfiles
-                                .filter(jp => !employeeJobProfiles.some(ejp => ejp.id === jp.id))
+                              {skillProfiles
+                                .filter(sp => !employeeSkillProfiles.some(esp => esp.id === sp.id))
                                 .map((profile) => (
                                   <MenuItem key={profile.id} value={profile.id}>
                                     {profile.name}
@@ -499,9 +507,9 @@ export function EmployeesPage() {
                   </Stack>
                 </form>
               </Paper>
-            </Grid>
+            </Box>
           )}
-        </Grid>
+        </Box>
       </Container>
     </Box>
   );

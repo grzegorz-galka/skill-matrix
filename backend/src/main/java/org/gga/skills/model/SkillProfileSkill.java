@@ -7,10 +7,10 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 
 @Entity
-@Table(name = "job_profile_skill", uniqueConstraints = {
-    @UniqueConstraint(name = "uk_job_profile_skill", columnNames = {"job_profile_id", "skill_id"})
+@Table(name = "skill_profile_skill", uniqueConstraints = {
+    @UniqueConstraint(name = "uk_skill_profile_skill", columnNames = {"skill_profile_id", "skill_id"})
 })
-public class JobProfileSkill {
+public class SkillProfileSkill {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -18,8 +18,8 @@ public class JobProfileSkill {
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "job_profile_id", nullable = false)
-    private JobProfile jobProfile;
+    @JoinColumn(name = "skill_profile_id", nullable = false)
+    private SkillProfile skillProfile;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
@@ -34,11 +34,11 @@ public class JobProfileSkill {
         createdAt = LocalDateTime.now();
     }
 
-    public JobProfileSkill() {
+    public SkillProfileSkill() {
     }
 
-    public JobProfileSkill(JobProfile jobProfile, Skill skill) {
-        this.jobProfile = jobProfile;
+    public SkillProfileSkill(SkillProfile skillProfile, Skill skill) {
+        this.skillProfile = skillProfile;
         this.skill = skill;
     }
 
@@ -50,12 +50,12 @@ public class JobProfileSkill {
         this.id = id;
     }
 
-    public JobProfile getJobProfile() {
-        return jobProfile;
+    public SkillProfile getSkillProfile() {
+        return skillProfile;
     }
 
-    public void setJobProfile(JobProfile jobProfile) {
-        this.jobProfile = jobProfile;
+    public void setSkillProfile(SkillProfile skillProfile) {
+        this.skillProfile = skillProfile;
     }
 
     public Skill getSkill() {
@@ -74,7 +74,7 @@ public class JobProfileSkill {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        JobProfileSkill that = (JobProfileSkill) o;
+        SkillProfileSkill that = (SkillProfileSkill) o;
         return Objects.equals(id, that.id);
     }
 
@@ -85,9 +85,9 @@ public class JobProfileSkill {
 
     @Override
     public String toString() {
-        return "JobProfileSkill{" +
+        return "SkillProfileSkill{" +
                 "id=" + id +
-                ", jobProfileId=" + (jobProfile != null ? jobProfile.getId() : null) +
+                ", skillProfileId=" + (skillProfile != null ? skillProfile.getId() : null) +
                 ", skillId=" + (skill != null ? skill.getId() : null) +
                 '}';
     }

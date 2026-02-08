@@ -17,7 +17,7 @@ export interface EmployeeRequest {
   position?: string;
 }
 
-export interface JobProfile {
+export interface SkillProfile {
   id: number;
   name: string;
   description?: string;
@@ -25,7 +25,7 @@ export interface JobProfile {
   updatedAt: string;
 }
 
-export interface JobProfileRequest {
+export interface SkillProfileRequest {
   name: string;
   description?: string;
 }
@@ -33,7 +33,8 @@ export interface JobProfileRequest {
 export interface Skill {
   id: number;
   name: string;
-  jobProfiles: JobProfile[];
+  skillProfiles: SkillProfile[];
+  grades: SkillGrade[];
   description?: string;
   createdAt: string;
   updatedAt: string;
@@ -50,6 +51,7 @@ export interface SkillGrade {
   skillName: string;
   code: string;
   description?: string;
+  level: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -58,6 +60,7 @@ export interface SkillGradeRequest {
   skillId: number;
   code: string;
   description?: string;
+  level?: number;
 }
 
 export interface EmployeeSkillGrade {
@@ -104,4 +107,58 @@ export interface ErrorResponse {
   message: string;
   details?: string[];
   timestamp: string;
+}
+
+export interface SkillsMatrixFilterRequest {
+  namePatterns?: string[];
+  departmentPatterns?: string[];
+  positionPatterns?: string[];
+  skillNamePatterns?: string[];
+  skillProfilePatterns?: string[];
+}
+
+export interface MatrixEmployee {
+  id: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  department?: string;
+  position?: string;
+}
+
+export interface MatrixSkill {
+  id: number;
+  name: string;
+  skillProfileNames: string[];
+}
+
+export interface MatrixCell {
+  employeeId: number;
+  skillId: number;
+  skillGradeId: number;
+  gradeCode: string;
+  gradeDescription?: string;
+  level: number;
+  yearsOfExperience?: number;
+  certified: boolean;
+}
+
+export interface SkillSummary {
+  skillId: number;
+  gradeCounts: Record<string, number>;
+}
+
+export interface SkillsMatrixResponse {
+  employees: MatrixEmployee[];
+  skills: MatrixSkill[];
+  cells: Record<string, MatrixCell>;
+  skillSummaries: Record<number, SkillSummary>;
+}
+
+export interface SkillsMatrixFilterHints {
+  names: string[];
+  departments: string[];
+  positions: string[];
+  skillNames: string[];
+  skillProfileNames: string[];
 }

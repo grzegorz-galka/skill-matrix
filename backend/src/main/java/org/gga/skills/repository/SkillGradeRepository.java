@@ -12,6 +12,8 @@ public interface SkillGradeRepository extends JpaRepository<SkillGrade, Long> {
 
     List<SkillGrade> findBySkillId(Long skillId);
 
+    List<SkillGrade> findBySkillIdIn(List<Long> skillIds);
+
     Optional<SkillGrade> findBySkillIdAndCode(Long skillId, String code);
 
     boolean existsBySkillIdAndCode(Long skillId, String code);

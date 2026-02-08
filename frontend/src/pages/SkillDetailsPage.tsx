@@ -17,7 +17,7 @@ import {
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useSkill } from '../hooks/useSkills';
 import { useSkillGrades } from '../hooks/useSkillGrades';
-import { useJobProfiles } from '../hooks/useJobProfiles';
+import { useSkillProfiles } from '../hooks/useSkillProfiles';
 import { DataTable } from '../components/DataTable';
 import { Loading } from '../components/Loading';
 import { ErrorMessage } from '../components/ErrorMessage';
@@ -45,7 +45,7 @@ export function SkillDetailsPage() {
   // Fetch data
   const { skill, loading: skillLoading, error: skillError, refetch: refetchSkill } = useSkill(skillId);
   const { skillGrades, loading: gradesLoading, error: gradesError, refetch: refetchGrades } = useSkillGrades(skillId);
-  const { jobProfiles } = useJobProfiles();
+  const { skillProfiles } = useSkillProfiles();
 
   // Skill form state
   const [skillFormData, setSkillFormData] = useState<SkillRequest>({
@@ -117,24 +117,24 @@ export function SkillDetailsPage() {
     }
   };
 
-  // Job profile handlers
-  const handleAddJobProfile = async (jobProfileId: number) => {
+  // Skill profile handlers
+  const handleAddSkillProfile = async (skillProfileId: number) => {
     try {
-      await skillService.addJobProfile(skillId, jobProfileId);
+      await skillService.addSkillProfile(skillId, skillProfileId);
       refetchSkill();
     } catch (err) {
-      alert('Failed to add job profile');
+      alert('Failed to add skill profile');
       console.error(err);
     }
   };
 
-  const handleRemoveJobProfile = async (jobProfileId: number) => {
-    if (confirm('Remove this job profile from the skill?')) {
+  const handleRemoveSkillProfile = async (skillProfileId: number) => {
+    if (confirm('Remove this skill profile from the skill?')) {
       try {
-        await skillService.removeJobProfile(skillId, jobProfileId);
+        await skillService.removeSkillProfile(skillId, skillProfileId);
         refetchSkill();
       } catch (err) {
-        alert('Failed to remove job profile');
+        alert('Failed to remove skill profile');
         console.error(err);
       }
     }
@@ -256,18 +256,18 @@ export function SkillDetailsPage() {
             size="small"
           />
 
-          {/* Job Profiles Display */}
+          {/* Skill Profiles Display */}
           <Box>
             <Typography variant="subtitle2" gutterBottom>
-              Assigned Job Profiles:
+              Assigned Skill Profiles:
             </Typography>
-            {skill.jobProfiles.length > 0 ? (
+            {skill.skillProfiles.length > 0 ? (
               <Stack direction="row" spacing={1} sx={{ mt: 1, flexWrap: 'wrap', gap: 1 }}>
-                {skill.jobProfiles.map(jp => (
+                {skill.skillProfiles.map(sp => (
                   <Chip
-                    key={jp.id}
-                    label={jp.name}
-                    onDelete={() => handleRemoveJobProfile(jp.id)}
+                    key={sp.id}
+                    label={sp.name}
+                    onDelete={() => handleRemoveSkillProfile(sp.id)}
                     color="primary"
                     variant="outlined"
                   />
@@ -275,21 +275,21 @@ export function SkillDetailsPage() {
               </Stack>
             ) : (
               <Typography variant="body2" color="text.secondary">
-                No job profiles assigned
+                No skill profiles assigned
               </Typography>
             )}
           </Box>
 
-          {/* Add Job Profile Dropdown */}
+          {/* Add Skill Profile Dropdown */}
           <FormControl size="small" sx={{ minWidth: 250 }}>
-            <InputLabel>Add Job Profile</InputLabel>
+            <InputLabel>Add Skill Profile</InputLabel>
             <Select
               value=""
-              label="Add Job Profile"
-              onChange={(e) => handleAddJobProfile(Number(e.target.value))}
+              label="Add Skill Profile"
+              onChange={(e) => handleAddSkillProfile(Number(e.target.value))}
             >
-              {jobProfiles
-                .filter(jp => !skill.jobProfiles.some(sjp => sjp.id === jp.id))
+              {skillProfiles
+                .filter(sp => !skill.skillProfiles.some(ssp => ssp.id === sp.id))
                 .map((profile) => (
                   <MenuItem key={profile.id} value={profile.id}>
                     {profile.name}
