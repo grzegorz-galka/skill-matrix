@@ -3,7 +3,7 @@ spring:
     name: skills-management
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/skills_db
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/skills_db}
     username: ${DB_USERNAME:skills_user}
     password: ${DB_PASSWORD:skills_pass}
     driver-class-name: org.postgresql.Driver

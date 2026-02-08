@@ -2,10 +2,10 @@ package org.gga.skills.service;
 
 import org.gga.skills.dto.SkillRequest;
 import org.gga.skills.dto.SkillResponse;
-import org.gga.skills.model.JobProfile;
+import org.gga.skills.model.SkillProfile;
 import org.gga.skills.model.Skill;
 import org.gga.skills.model.SkillGrade;
-import org.gga.skills.repository.JobProfileSkillRepository;
+import org.gga.skills.repository.SkillProfileSkillRepository;
 import org.gga.skills.repository.SkillGradeRepository;
 import org.gga.skills.repository.SkillRepository;
 import org.springframework.data.domain.Page;
@@ -20,26 +20,26 @@ import java.util.List;
 public class SkillService {
 
     private final SkillRepository skillRepository;
-    private final JobProfileSkillRepository jobProfileSkillRepository;
+    private final SkillProfileSkillRepository skillProfileSkillRepository;
     private final SkillGradeRepository skillGradeRepository;
 
     public SkillService(SkillRepository skillRepository,
-                       JobProfileSkillRepository jobProfileSkillRepository,
+                       SkillProfileSkillRepository skillProfileSkillRepository,
                        SkillGradeRepository skillGradeRepository) {
         this.skillRepository = skillRepository;
-        this.jobProfileSkillRepository = jobProfileSkillRepository;
+        this.skillProfileSkillRepository = skillProfileSkillRepository;
         this.skillGradeRepository = skillGradeRepository;
     }
 
     public List<SkillResponse> getAllSkills() {
         return skillRepository.findAll().stream()
                 .map(skill -> {
-                    List<JobProfile> jobProfiles = jobProfileSkillRepository.findBySkillId(skill.getId())
+                    List<SkillProfile> skillProfiles = skillProfileSkillRepository.findBySkillId(skill.getId())
                             .stream()
-                            .map(jps -> jps.getJobProfile())
+                            .map(sps -> sps.getSkillProfile())
                             .toList();
                     List<SkillGrade> grades = skillGradeRepository.findBySkillId(skill.getId());
-                    return SkillResponse.fromEntity(skill, jobProfiles, grades);
+                    return SkillResponse.fromEntity(skill, skillProfiles, grades);
                 })
                 .toList();
     }
@@ -47,12 +47,12 @@ public class SkillService {
     public Page<SkillResponse> getAllSkills(Pageable pageable) {
         return skillRepository.findAll(pageable)
                 .map(skill -> {
-                    List<JobProfile> jobProfiles = jobProfileSkillRepository.findBySkillId(skill.getId())
+                    List<SkillProfile> skillProfiles = skillProfileSkillRepository.findBySkillId(skill.getId())
                             .stream()
-                            .map(jps -> jps.getJobProfile())
+                            .map(sps -> sps.getSkillProfile())
                             .toList();
                     List<SkillGrade> grades = skillGradeRepository.findBySkillId(skill.getId());
-                    return SkillResponse.fromEntity(skill, jobProfiles, grades);
+                    return SkillResponse.fromEntity(skill, skillProfiles, grades);
                 });
     }
 
@@ -60,14 +60,14 @@ public class SkillService {
         Skill skill = skillRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Skill not found with id: " + id));
 
-        List<JobProfile> jobProfiles = jobProfileSkillRepository.findBySkillId(id)
+        List<SkillProfile> skillProfiles = skillProfileSkillRepository.findBySkillId(id)
                 .stream()
-                .map(jps -> jps.getJobProfile())
+                .map(sps -> sps.getSkillProfile())
                 .toList();
 
         List<SkillGrade> grades = skillGradeRepository.findBySkillId(id);
 
-        return SkillResponse.fromEntity(skill, jobProfiles, grades);
+        return SkillResponse.fromEntity(skill, skillProfiles, grades);
     }
 
     @Transactional
@@ -81,7 +81,7 @@ public class SkillService {
 
         Skill saved = skillRepository.save(skill);
 
-        // Return skill with empty job profiles and grades lists
+        // Return skill with empty skill profiles and grades lists
         return SkillResponse.fromEntity(saved, List.of(), List.of());
     }
 
@@ -100,15 +100,15 @@ public class SkillService {
 
         Skill updated = skillRepository.save(skill);
 
-        // Fetch associated job profiles and grades
-        List<JobProfile> jobProfiles = jobProfileSkillRepository.findBySkillId(id)
+        // Fetch associated skill profiles and grades
+        List<SkillProfile> skillProfiles = skillProfileSkillRepository.findBySkillId(id)
                 .stream()
-                .map(jps -> jps.getJobProfile())
+                .map(sps -> sps.getSkillProfile())
                 .toList();
 
         List<SkillGrade> grades = skillGradeRepository.findBySkillId(id);
 
-        return SkillResponse.fromEntity(updated, jobProfiles, grades);
+        return SkillResponse.fromEntity(updated, skillProfiles, grades);
     }
 
     @Transactional

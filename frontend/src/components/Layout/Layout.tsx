@@ -29,9 +29,10 @@ export function Layout({ children }: LayoutProps) {
 
   const navigationItems = [
     { label: 'Employees', path: '/employees' },
-    { label: 'Job Profiles', path: '/job-profiles' },
+    { label: 'Skill Profiles', path: '/skill-profiles' },
     { label: 'Skills', path: '/skills' },
     { label: 'Employee Skills', path: '/employee-skills' },
+    { label: 'Skills Matrix', path: '/skills-matrix' },
   ];
 
   const handleDrawerToggle = () => {

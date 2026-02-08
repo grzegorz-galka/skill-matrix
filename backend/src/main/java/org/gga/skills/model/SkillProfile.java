@@ -8,8 +8,8 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 
 @Entity
-@Table(name = "job_profile")
-public class JobProfile {
+@Table(name = "skill_profile")
+public class SkillProfile {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -40,10 +40,10 @@ public class JobProfile {
         updatedAt = LocalDateTime.now();
     }
 
-    public JobProfile() {
+    public SkillProfile() {
     }
 
-    public JobProfile(String name, String description) {
+    public SkillProfile(String name, String description) {
         this.name = name;
         this.description = description;
     }
@@ -84,7 +84,7 @@ public class JobProfile {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        JobProfile that = (JobProfile) o;
+        SkillProfile that = (SkillProfile) o;
         return Objects.equals(id, that.id);
     }
 
@@ -95,7 +95,7 @@ public class JobProfile {
 
     @Override
     public String toString() {
-        return "JobProfile{" +
+        return "SkillProfile{" +
                 "id=" + id +
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +

@@ -61,7 +61,7 @@ public class SkillGradeService {
         Skill skill = skillRepository.findById(request.skillId())
                 .orElseThrow(() -> new ResourceNotFoundException("Skill not found with id: " + request.skillId()));
 
-        SkillGrade skillGrade = new SkillGrade(skill, request.code(), request.description());
+        SkillGrade skillGrade = new SkillGrade(skill, request.code(), request.description(), request.level());
 
         SkillGrade saved = skillGradeRepository.save(skillGrade);
         return SkillGradeResponse.fromEntity(saved);
@@ -87,6 +87,7 @@ public class SkillGradeService {
         skillGrade.setSkill(skill);
         skillGrade.setCode(request.code());
         skillGrade.setDescription(request.description());
+        skillGrade.setLevel(request.level() != null ? request.level() : 1);
 
         SkillGrade updated = skillGradeRepository.save(skillGrade);
         return SkillGradeResponse.fromEntity(updated);

@@ -28,7 +28,8 @@ import { employeeSkillGradeService } from '../services/employeeSkillGradeService
 import { employeeService } from '../services/employeeService';
 import { Loading } from '../components/Loading';
 import { ErrorMessage } from '../components/ErrorMessage';
-import { Skill, SkillGrade, Employee, JobProfile } from '../types';
+import { Skill, SkillGrade, Employee, SkillProfile } from '../types';
+import { getLevelColor, getLevelTextColor } from '../utils/levelColors';
 
 interface SkillWithGrades extends Skill {
   grades: SkillGrade[];
@@ -46,7 +47,7 @@ export function EmployeeSkillsPage() {
 
   const [allSkills, setAllSkills] = useState<SkillWithGrades[]>([]);
   const [possessedSkills, setPossessedSkills] = useState<PossessedSkill[]>([]);
-  const [employeeJobProfiles, setEmployeeJobProfiles] = useState<JobProfile[]>([]);
+  const [employeeSkillProfiles, setEmployeeSkillProfiles] = useState<SkillProfile[]>([]);
   const [selectedAvailableSkills, setSelectedAvailableSkills] = useState<Set<number>>(new Set());
   const [selectedPossessedSkills, setSelectedPossessedSkills] = useState<Set<number>>(new Set());
 
@@ -84,11 +85,11 @@ export function EmployeeSkillsPage() {
     loadSkills();
   }, []);
 
-  // Load employee's possessed skills and job profiles when employee changes
+  // Load employee's possessed skills and skill profiles when employee changes
   useEffect(() => {
     if (!selectedEmployee) {
       setPossessedSkills([]);
-      setEmployeeJobProfiles([]);
+      setEmployeeSkillProfiles([]);
       setHasChanges(false);
       return;
     }
@@ -97,9 +98,9 @@ export function EmployeeSkillsPage() {
       try {
         setLoading(true);
 
-        // Fetch employee's job profiles
-        const jobProfiles = await employeeService.getJobProfiles(selectedEmployee.id);
-        setEmployeeJobProfiles(jobProfiles);
+        // Fetch employee's skill profiles
+        const skillProfiles = await employeeService.getSkillProfiles(selectedEmployee.id);
+        setEmployeeSkillProfiles(skillProfiles);
 
         // Fetch employee's skill grades
         const employeeSkillGrades = await employeeSkillGradeService.getByEmployeeId(selectedEmployee.id);
@@ -111,7 +112,7 @@ export function EmployeeSkillsPage() {
             skill: skill || {
               id: esg.skillId,
               name: esg.skillName,
-              jobProfiles: [],
+              skillProfiles: [],
               createdAt: '',
               updatedAt: '',
               grades: []
@@ -137,10 +138,10 @@ export function EmployeeSkillsPage() {
     }
   }, [selectedEmployee, allSkills]);
 
-  // Get employee's job profiles to filter available skills
-  const employeeJobProfileIds = useMemo(() => {
-    return new Set(employeeJobProfiles.map(jp => jp.id));
-  }, [employeeJobProfiles]);
+  // Get employee's skill profiles to filter available skills
+  const employeeSkillProfileIds = useMemo(() => {
+    return new Set(employeeSkillProfiles.map(sp => sp.id));
+  }, [employeeSkillProfiles]);
 
   // Filter available skills
   const availableSkills = useMemo(() => {
@@ -149,14 +150,14 @@ export function EmployeeSkillsPage() {
     return allSkills
       .filter(skill => !possessedSkillIds.has(skill.id))
       .filter(skill => {
-        // Filter by job profiles if "Show all skills" is off
+        // Filter by skill profiles if "Show skills from all profiles" is off
         if (!showAllSkills) {
-          // If employee has no job profiles, show no skills
-          if (employeeJobProfileIds.size === 0) return false;
-          // Otherwise, only show skills that belong to employee's job profiles
-          return skill.jobProfiles.some(jp => employeeJobProfileIds.has(jp.id));
+          // If employee has no skill profiles, show no skills
+          if (employeeSkillProfileIds.size === 0) return false;
+          // Otherwise, only show skills that belong to employee's skill profiles
+          return skill.skillProfiles.some(sp => employeeSkillProfileIds.has(sp.id));
         }
-        // Show all skills when toggle is on
+        // Show skills from all profiles when toggle is on
         return true;
       })
       .filter(skill => {
@@ -164,9 +165,9 @@ export function EmployeeSkillsPage() {
         if (!filterText) return true;
         const searchLower = filterText.toLowerCase();
         return skill.name.toLowerCase().includes(searchLower) ||
-               skill.jobProfiles.some(jp => jp.name.toLowerCase().includes(searchLower));
+               skill.skillProfiles.some(sp => sp.name.toLowerCase().includes(searchLower));
       });
-  }, [allSkills, possessedSkills, showAllSkills, employeeJobProfileIds, filterText]);
+  }, [allSkills, possessedSkills, showAllSkills, employeeSkillProfileIds, filterText]);
 
   const handleMoveToPressed = () => {
     const skillsToMove = availableSkills.filter(skill => selectedAvailableSkills.has(skill.id));
@@ -238,7 +239,7 @@ export function EmployeeSkillsPage() {
           skill: skill || {
             id: esg.skillId,
             name: esg.skillName,
-            jobProfiles: [],
+            skillProfiles: [],
             createdAt: '',
             updatedAt: '',
             grades: []
@@ -260,7 +261,7 @@ export function EmployeeSkillsPage() {
   const handleCancel = () => {
     setSelectedEmployee(null);
     setPossessedSkills([]);
-    setEmployeeJobProfiles([]);
+    setEmployeeSkillProfiles([]);
     setSelectedAvailableSkills(new Set());
     setSelectedPossessedSkills(new Set());
     setHasChanges(false);
@@ -351,7 +352,7 @@ export function EmployeeSkillsPage() {
                       size="small"
                     />
                   }
-                  label={<Typography variant="body2">Show all skills</Typography>}
+                  label={<Typography variant="body2">Show skills from all profiles</Typography>}
                   sx={{ mb: 2 }}
                 />
 
@@ -415,9 +416,9 @@ export function EmployeeSkillsPage() {
                             <Typography variant="body2" sx={{ fontWeight: 500 }}>
                               {skill.name}
                             </Typography>
-                            {skill.jobProfiles.length > 0 && (
+                            {skill.skillProfiles.length > 0 && (
                               <Typography variant="caption" color="text.secondary">
-                                {skill.jobProfiles.map(jp => jp.name).join(', ')}
+                                {skill.skillProfiles.map(sp => sp.name).join(', ')}
                               </Typography>
                             )}
                           </Box>
@@ -525,9 +526,9 @@ export function EmployeeSkillsPage() {
                             <Typography variant="body2" sx={{ fontWeight: 500 }}>
                               {ps.skill.name}
                             </Typography>
-                            {ps.skill.jobProfiles && ps.skill.jobProfiles.length > 0 && (
+                            {ps.skill.skillProfiles && ps.skill.skillProfiles.length > 0 && (
                               <Typography variant="caption" color="text.secondary">
-                                {ps.skill.jobProfiles.map(jp => jp.name).join(', ')}
+                                {ps.skill.skillProfiles.map(sp => sp.name).join(', ')}
                               </Typography>
                             )}
                           </Box>
@@ -542,12 +543,78 @@ export function EmployeeSkillsPage() {
                             <Select
                               value={ps.selectedGradeId || ''}
                               onChange={(e) => handleGradeChange(ps.skill.id, Number(e.target.value))}
+                              renderValue={(selected) => {
+                                const grades = allSkills.find(s => s.id === ps.skill.id)?.grades || [];
+                                const selectedGrade = grades.find(g => g.id === selected);
+                                if (!selectedGrade) return '';
+                                return (
+                                  <Box
+                                    sx={{
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      gap: 1,
+                                    }}
+                                  >
+                                    <Box
+                                      sx={{
+                                        width: 16,
+                                        height: 16,
+                                        borderRadius: 0.5,
+                                        bgcolor: getLevelColor(selectedGrade.level),
+                                        border: '1px solid rgba(0,0,0,0.1)',
+                                        flexShrink: 0,
+                                      }}
+                                    />
+                                    <span>
+                                      {selectedGrade.code}
+                                      {selectedGrade.description ? ` - ${selectedGrade.description}` : ''}
+                                    </span>
+                                  </Box>
+                                );
+                              }}
                             >
-                              {allSkills.find(s => s.id === ps.skill.id)?.grades.map((grade) => (
-                                <MenuItem key={grade.id} value={grade.id}>
-                                  {grade.code} - {grade.description || 'No description'}
-                                </MenuItem>
-                              ))}
+                              {allSkills
+                                .find(s => s.id === ps.skill.id)
+                                ?.grades
+                                .sort((a, b) => a.level - b.level)
+                                .map((grade) => (
+                                  <MenuItem
+                                    key={grade.id}
+                                    value={grade.id}
+                                    sx={{
+                                      bgcolor: getLevelColor(grade.level),
+                                      color: getLevelTextColor(grade.level),
+                                      '&:hover': {
+                                        bgcolor: getLevelColor(grade.level),
+                                        filter: 'brightness(0.95)',
+                                      },
+                                      '&.Mui-selected': {
+                                        bgcolor: getLevelColor(grade.level),
+                                        '&:hover': {
+                                          bgcolor: getLevelColor(grade.level),
+                                          filter: 'brightness(0.95)',
+                                        },
+                                      },
+                                      my: 0.25,
+                                      mx: 0.5,
+                                      borderRadius: 1,
+                                    }}
+                                  >
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                      <Typography variant="caption" sx={{ fontWeight: 'bold', minWidth: 20 }}>
+                                        L{grade.level}
+                                      </Typography>
+                                      <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                                        {grade.code}
+                                      </Typography>
+                                      {grade.description && (
+                                        <Typography variant="caption" sx={{ opacity: 0.8 }}>
+                                          - {grade.description}
+                                        </Typography>
+                                      )}
+                                    </Box>
+                                  </MenuItem>
+                                ))}
                             </Select>
                           </FormControl>
                         </Box>

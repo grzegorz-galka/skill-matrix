@@ -3,10 +3,10 @@ package org.gga.skills.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import org.gga.skills.dto.JobProfileResponse;
+import org.gga.skills.dto.SkillProfileResponse;
 import org.gga.skills.dto.SkillRequest;
 import org.gga.skills.dto.SkillResponse;
-import org.gga.skills.service.JobProfileSkillService;
+import org.gga.skills.service.SkillProfileSkillService;
 import org.gga.skills.service.SkillService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -21,12 +21,12 @@ import java.util.List;
 public class SkillController {
 
     private final SkillService skillService;
-    private final JobProfileSkillService jobProfileSkillService;
+    private final SkillProfileSkillService skillProfileSkillService;
 
     public SkillController(SkillService skillService,
-                          JobProfileSkillService jobProfileSkillService) {
+                          SkillProfileSkillService skillProfileSkillService) {
         this.skillService = skillService;
-        this.jobProfileSkillService = jobProfileSkillService;
+        this.skillProfileSkillService = skillProfileSkillService;
     }
 
     @GetMapping
@@ -62,27 +62,27 @@ public class SkillController {
         skillService.deleteSkill(id);
     }
 
-    @PostMapping("/{skillId}/job-profiles/{jobProfileId}")
+    @PostMapping("/{skillId}/skill-profiles/{skillProfileId}")
     @ResponseStatus(HttpStatus.CREATED)
-    @Operation(summary = "Associate skill with job profile", description = "Create association between a skill and a job profile")
-    public void associateWithJobProfile(@PathVariable Long skillId,
-                                        @PathVariable Long jobProfileId) {
-        jobProfileSkillService.associateSkillWithJobProfile(skillId, jobProfileId);
+    @Operation(summary = "Associate skill with skill profile", description = "Create association between a skill and a skill profile")
+    public void associateWithSkillProfile(@PathVariable Long skillId,
+                                          @PathVariable Long skillProfileId) {
+        skillProfileSkillService.associateSkillWithSkillProfile(skillId, skillProfileId);
     }
 
-    @DeleteMapping("/{skillId}/job-profiles/{jobProfileId}")
+    @DeleteMapping("/{skillId}/skill-profiles/{skillProfileId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @Operation(summary = "Remove skill from job profile", description = "Remove association between a skill and a job profile")
-    public void removeFromJobProfile(@PathVariable Long skillId,
-                                     @PathVariable Long jobProfileId) {
-        jobProfileSkillService.removeAssociation(skillId, jobProfileId);
+    @Operation(summary = "Remove skill from skill profile", description = "Remove association between a skill and a skill profile")
+    public void removeFromSkillProfile(@PathVariable Long skillId,
+                                       @PathVariable Long skillProfileId) {
+        skillProfileSkillService.removeAssociation(skillId, skillProfileId);
     }
 
-    @GetMapping("/{skillId}/job-profiles")
-    @Operation(summary = "Get job profiles for skill", description = "Retrieve all job profiles associated with a skill")
-    public List<JobProfileResponse> getJobProfilesForSkill(@PathVariable Long skillId) {
-        return jobProfileSkillService.getJobProfilesBySkillId(skillId).stream()
-                .map(JobProfileResponse::fromEntity)
+    @GetMapping("/{skillId}/skill-profiles")
+    @Operation(summary = "Get skill profiles for skill", description = "Retrieve all skill profiles associated with a skill")
+    public List<SkillProfileResponse> getSkillProfilesForSkill(@PathVariable Long skillId) {
+        return skillProfileSkillService.getSkillProfilesBySkillId(skillId).stream()
+                .map(SkillProfileResponse::fromEntity)
                 .toList();
     }
 }

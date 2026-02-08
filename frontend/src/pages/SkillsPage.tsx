@@ -21,17 +21,18 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import SchoolIcon from '@mui/icons-material/School';
 import { useSkills } from '../hooks/useSkills';
-import { useJobProfiles } from '../hooks/useJobProfiles';
+import { useSkillProfiles } from '../hooks/useSkillProfiles';
 import { Loading } from '../components/Loading';
 import { ErrorMessage } from '../components/ErrorMessage';
 import { SkillEditModal } from '../components/SkillEditModal';
 import { Skill } from '../types';
 import { skillService } from '../services/skillService';
+import { getLevelColor, getLevelTextColor } from '../utils/levelColors';
 
 export function SkillsPage() {
   const [page] = useState(0);
   const { skills, loading, error, refetch } = useSkills(page, 20);
-  const { jobProfiles } = useJobProfiles();
+  const { skillProfiles } = useSkillProfiles();
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedSkill, setSelectedSkill] = useState<Skill | null>(null);
 
@@ -82,7 +83,7 @@ export function SkillsPage() {
                 Skills
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                Manage individual skills and their associated job profiles
+                Manage individual skills and their associated skill profiles
               </Typography>
             </Box>
           </Box>
@@ -109,7 +110,7 @@ export function SkillsPage() {
               <TableHead>
                 <TableRow sx={{ bgcolor: '#f9fafb' }}>
                   <TableCell sx={{ fontWeight: 'bold', py: 2 }}>Name</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', py: 2 }}>Job Profiles</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', py: 2 }}>Skill Profiles</TableCell>
                   <TableCell sx={{ fontWeight: 'bold', py: 2 }}>Description</TableCell>
                   <TableCell sx={{ fontWeight: 'bold', py: 2 }}>Grades</TableCell>
                   <TableCell sx={{ fontWeight: 'bold', py: 2, textAlign: 'right' }}>Actions</TableCell>
@@ -131,11 +132,11 @@ export function SkillsPage() {
                     </TableCell>
                     <TableCell sx={{ py: 2 }}>
                       <Stack direction="row" spacing={0.5} flexWrap="wrap" gap={0.5}>
-                        {skill.jobProfiles?.length > 0 ? (
-                          skill.jobProfiles.map((jp) => (
+                        {skill.skillProfiles?.length > 0 ? (
+                          skill.skillProfiles.map((sp) => (
                             <Chip
-                              key={jp.id}
-                              label={jp.name}
+                              key={sp.id}
+                              label={sp.name}
                               size="small"
                               sx={{
                                 bgcolor: '#dbeafe',
@@ -158,45 +159,25 @@ export function SkillsPage() {
                       </Typography>
                     </TableCell>
                     <TableCell sx={{ py: 2 }}>
-                      <Stack direction="row" spacing={0.5} alignItems="center">
-                        {skill.grades?.slice(0, 3).map((_, index) => (
-                          <Box
-                            key={index}
-                            sx={{
-                              width: 28,
-                              height: 28,
-                              borderRadius: '50%',
-                              bgcolor: '#8b5cf6',
-                              color: 'white',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              fontSize: '0.75rem',
-                              fontWeight: 'bold',
-                            }}
-                          >
-                            {index + 1}
-                          </Box>
-                        ))}
-                        {skill.grades?.length > 3 && (
-                          <Box
-                            sx={{
-                              width: 28,
-                              height: 28,
-                              borderRadius: '50%',
-                              bgcolor: '#e0e7ff',
-                              color: '#5b21b6',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              fontSize: '0.75rem',
-                              fontWeight: 'bold',
-                            }}
-                          >
-                            +{skill.grades.length - 3}
-                          </Box>
-                        )}
-                        {(!skill.grades || skill.grades.length === 0) && (
+                      <Stack direction="row" spacing={0.5} flexWrap="wrap" gap={0.5}>
+                        {skill.grades?.length > 0 ? (
+                          [...skill.grades]
+                            .sort((a, b) => a.level - b.level)
+                            .map((grade) => (
+                              <Chip
+                                key={grade.id}
+                                label={grade.code}
+                                size="small"
+                                sx={{
+                                  bgcolor: getLevelColor(grade.level),
+                                  color: getLevelTextColor(grade.level),
+                                  fontSize: '0.7rem',
+                                  fontWeight: 'bold',
+                                  height: 24,
+                                }}
+                              />
+                            ))
+                        ) : (
                           <Typography variant="body2" color="text.secondary">
                             -
                           </Typography>
@@ -242,7 +223,7 @@ export function SkillsPage() {
       <SkillEditModal
         open={modalOpen}
         skill={selectedSkill}
-        jobProfiles={jobProfiles}
+        skillProfiles={skillProfiles}
         onClose={handleModalClose}
         onSave={handleModalSave}
       />

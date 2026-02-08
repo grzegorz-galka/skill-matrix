@@ -7,10 +7,10 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 
 @Entity
-@Table(name = "employee_job_profile", uniqueConstraints = {
-    @UniqueConstraint(name = "uk_employee_job_profile", columnNames = {"employee_id", "job_profile_id"})
+@Table(name = "employee_skill_profile", uniqueConstraints = {
+    @UniqueConstraint(name = "uk_employee_skill_profile", columnNames = {"employee_id", "skill_profile_id"})
 })
-public class EmployeeJobProfile {
+public class EmployeeSkillProfile {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -23,8 +23,8 @@ public class EmployeeJobProfile {
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "job_profile_id", nullable = false)
-    private JobProfile jobProfile;
+    @JoinColumn(name = "skill_profile_id", nullable = false)
+    private SkillProfile skillProfile;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -34,12 +34,12 @@ public class EmployeeJobProfile {
         createdAt = LocalDateTime.now();
     }
 
-    public EmployeeJobProfile() {
+    public EmployeeSkillProfile() {
     }
 
-    public EmployeeJobProfile(Employee employee, JobProfile jobProfile) {
+    public EmployeeSkillProfile(Employee employee, SkillProfile skillProfile) {
         this.employee = employee;
-        this.jobProfile = jobProfile;
+        this.skillProfile = skillProfile;
     }
 
     public Long getId() {
@@ -58,12 +58,12 @@ public class EmployeeJobProfile {
         this.employee = employee;
     }
 
-    public JobProfile getJobProfile() {
-        return jobProfile;
+    public SkillProfile getSkillProfile() {
+        return skillProfile;
     }
 
-    public void setJobProfile(JobProfile jobProfile) {
-        this.jobProfile = jobProfile;
+    public void setSkillProfile(SkillProfile skillProfile) {
+        this.skillProfile = skillProfile;
     }
 
     public LocalDateTime getCreatedAt() {
@@ -74,7 +74,7 @@ public class EmployeeJobProfile {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        EmployeeJobProfile that = (EmployeeJobProfile) o;
+        EmployeeSkillProfile that = (EmployeeSkillProfile) o;
         return Objects.equals(id, that.id);
     }
 
@@ -85,10 +85,10 @@ public class EmployeeJobProfile {
 
     @Override
     public String toString() {
-        return "EmployeeJobProfile{" +
+        return "EmployeeSkillProfile{" +
                 "id=" + id +
                 ", employeeId=" + (employee != null ? employee.getId() : null) +
-                ", jobProfileId=" + (jobProfile != null ? jobProfile.getId() : null) +
+                ", skillProfileId=" + (skillProfile != null ? skillProfile.getId() : null) +
                 '}';
     }
 }

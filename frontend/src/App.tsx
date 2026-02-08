@@ -3,9 +3,10 @@ import { Layout } from './components/Layout/Layout';
 import { HomePage } from './pages/HomePage';
 import { EmployeesPage } from './pages/EmployeesPage';
 import { EmployeeSkillsPage } from './pages/EmployeeSkillsPage';
-import { JobProfilesPage } from './pages/JobProfilesPage';
+import { SkillProfilesPage } from './pages/SkillProfilesPage';
 import { SkillsPage } from './pages/SkillsPage';
 import { SkillDetailsPage } from './pages/SkillDetailsPage';
+import { SkillsMatrixPage } from './pages/SkillsMatrixPage';
 
 function App() {
   return (
@@ -15,9 +16,10 @@ function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/employees" element={<EmployeesPage />} />
           <Route path="/employee-skills" element={<EmployeeSkillsPage />} />
-          <Route path="/job-profiles" element={<JobProfilesPage />} />
+          <Route path="/skill-profiles" element={<SkillProfilesPage />} />
           <Route path="/skills" element={<SkillsPage />} />
           <Route path="/skills/:id" element={<SkillDetailsPage />} />
+          <Route path="/skills-matrix" element={<SkillsMatrixPage />} />
         </Routes>
       </Layout>
     </BrowserRouter>

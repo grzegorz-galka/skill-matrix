@@ -17,26 +17,29 @@ import {
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import AddIcon from '@mui/icons-material/Add';
-import { Skill, SkillRequest, JobProfile, SkillGrade, SkillGradeRequest } from '../types';
+import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
+import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
+import { Skill, SkillRequest, SkillProfile, SkillGrade, SkillGradeRequest } from '../types';
 import { skillService } from '../services/skillService';
 import { skillGradeService } from '../services/skillGradeService';
+import { getLevelColor, getLevelTextColor, getLevelLabel } from '../utils/levelColors';
 
 interface SkillEditModalProps {
   open: boolean;
   skill: Skill | null;
-  jobProfiles: JobProfile[];
+  skillProfiles: SkillProfile[];
   onClose: () => void;
   onSave: () => void;
 }
 
-export function SkillEditModal({ open, skill, jobProfiles, onClose, onSave }: SkillEditModalProps) {
+export function SkillEditModal({ open, skill, skillProfiles, onClose, onSave }: SkillEditModalProps) {
   const [formData, setFormData] = useState<SkillRequest>({
     name: '',
     description: '',
   });
-  const [skillJobProfiles, setSkillJobProfiles] = useState<JobProfile[]>([]);
+  const [skillSkillProfiles, setSkillSkillProfiles] = useState<SkillProfile[]>([]);
   const [skillGrades, setSkillGrades] = useState<SkillGrade[]>([]);
-  const [newGrade, setNewGrade] = useState({ code: '', description: '' });
+  const [newGrade, setNewGrade] = useState({ code: '', description: '', level: 1 });
   const [editingGrade, setEditingGrade] = useState<SkillGrade | null>(null);
 
   useEffect(() => {
@@ -45,14 +48,14 @@ export function SkillEditModal({ open, skill, jobProfiles, onClose, onSave }: Sk
         name: skill.name,
         description: skill.description || '',
       });
-      setSkillJobProfiles(skill.jobProfiles || []);
+      setSkillSkillProfiles(skill.skillProfiles || []);
       setSkillGrades(skill.grades || []);
     } else {
       setFormData({ name: '', description: '' });
-      setSkillJobProfiles([]);
+      setSkillSkillProfiles([]);
       setSkillGrades([]);
     }
-    setNewGrade({ code: '', description: '' });
+    setNewGrade({ code: '', description: '', level: 1 });
     setEditingGrade(null);
   }, [skill]);
 
@@ -71,27 +74,27 @@ export function SkillEditModal({ open, skill, jobProfiles, onClose, onSave }: Sk
     }
   };
 
-  const handleAddJobProfile = async (jobProfileId: number) => {
+  const handleAddSkillProfile = async (skillProfileId: number) => {
     if (!skill) return;
 
     try {
-      await skillService.addJobProfile(skill.id, jobProfileId);
-      const updatedProfiles = await skillService.getJobProfiles(skill.id);
-      setSkillJobProfiles(updatedProfiles);
+      await skillService.addSkillProfile(skill.id, skillProfileId);
+      const updatedProfiles = await skillService.getSkillProfiles(skill.id);
+      setSkillSkillProfiles(updatedProfiles);
     } catch (err) {
-      alert('Failed to assign job profile');
+      alert('Failed to assign skill profile');
     }
   };
 
-  const handleRemoveJobProfile = async (jobProfileId: number) => {
+  const handleRemoveSkillProfile = async (skillProfileId: number) => {
     if (!skill) return;
 
     try {
-      await skillService.removeJobProfile(skill.id, jobProfileId);
-      const updatedProfiles = await skillService.getJobProfiles(skill.id);
-      setSkillJobProfiles(updatedProfiles);
+      await skillService.removeSkillProfile(skill.id, skillProfileId);
+      const updatedProfiles = await skillService.getSkillProfiles(skill.id);
+      setSkillSkillProfiles(updatedProfiles);
     } catch (err) {
-      alert('Failed to remove job profile');
+      alert('Failed to remove skill profile');
     }
   };
 
@@ -103,11 +106,12 @@ export function SkillEditModal({ open, skill, jobProfiles, onClose, onSave }: Sk
         skillId: skill.id,
         code: newGrade.code,
         description: newGrade.description,
+        level: newGrade.level,
       };
       await skillGradeService.create(gradeRequest);
       const updatedGrades = await skillGradeService.getBySkillId(skill.id);
       setSkillGrades(updatedGrades);
-      setNewGrade({ code: '', description: '' });
+      setNewGrade({ code: '', description: '', level: 1 });
     } catch (err) {
       alert('Failed to add grade');
     }
@@ -121,6 +125,7 @@ export function SkillEditModal({ open, skill, jobProfiles, onClose, onSave }: Sk
         skillId: skill.id,
         code: editingGrade.code,
         description: editingGrade.description,
+        level: editingGrade.level,
       };
       await skillGradeService.update(editingGrade.id, gradeRequest);
       const updatedGrades = await skillGradeService.getBySkillId(skill.id);
@@ -128,6 +133,40 @@ export function SkillEditModal({ open, skill, jobProfiles, onClose, onSave }: Sk
       setEditingGrade(null);
     } catch (err) {
       alert('Failed to update grade');
+    }
+  };
+
+  const handleMoveGradeUp = async (grade: SkillGrade) => {
+    if (!skill || grade.level <= 1) return;
+    try {
+      const gradeRequest: SkillGradeRequest = {
+        skillId: skill.id,
+        code: grade.code,
+        description: grade.description,
+        level: grade.level - 1,
+      };
+      await skillGradeService.update(grade.id, gradeRequest);
+      const updatedGrades = await skillGradeService.getBySkillId(skill.id);
+      setSkillGrades(updatedGrades);
+    } catch (err) {
+      alert('Failed to update grade level');
+    }
+  };
+
+  const handleMoveGradeDown = async (grade: SkillGrade) => {
+    if (!skill || grade.level >= 5) return;
+    try {
+      const gradeRequest: SkillGradeRequest = {
+        skillId: skill.id,
+        code: grade.code,
+        description: grade.description,
+        level: grade.level + 1,
+      };
+      await skillGradeService.update(grade.id, gradeRequest);
+      const updatedGrades = await skillGradeService.getBySkillId(skill.id);
+      setSkillGrades(updatedGrades);
+    } catch (err) {
+      alert('Failed to update grade level');
     }
   };
 
@@ -164,7 +203,7 @@ export function SkillEditModal({ open, skill, jobProfiles, onClose, onSave }: Sk
                 Edit Skill: {skill?.name}
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                Update skill information and associated job profiles
+                Update skill information and associated skill profiles
               </Typography>
             </Box>
             <IconButton onClick={onClose} size="small">
@@ -215,19 +254,19 @@ export function SkillEditModal({ open, skill, jobProfiles, onClose, onSave }: Sk
 
           <Divider />
 
-          {/* Assigned Job Profiles Section */}
+          {/* Assigned Skill Profiles Section */}
           <Box sx={{ p: 3 }}>
             <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 2 }}>
-              Assigned Job Profiles
+              Assigned Skill Profiles
             </Typography>
 
-            {skill && skillJobProfiles.length > 0 && (
+            {skill && skillSkillProfiles.length > 0 && (
               <Stack direction="row" spacing={1} sx={{ mb: 2, flexWrap: 'wrap', gap: 1 }}>
-                {skillJobProfiles.map((jp) => (
+                {skillSkillProfiles.map((sp) => (
                   <Chip
-                    key={jp.id}
-                    label={jp.name}
-                    onDelete={() => handleRemoveJobProfile(jp.id)}
+                    key={sp.id}
+                    label={sp.name}
+                    onDelete={() => handleRemoveSkillProfile(sp.id)}
                     sx={{
                       bgcolor: '#dbeafe',
                       color: '#1e40af',
@@ -251,17 +290,17 @@ export function SkillEditModal({ open, skill, jobProfiles, onClose, onSave }: Sk
                   <Select
                     displayEmpty
                     value=""
-                    onChange={(e) => handleAddJobProfile(Number(e.target.value))}
+                    onChange={(e) => handleAddSkillProfile(Number(e.target.value))}
                     renderValue={() => (
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: '#6b7280' }}>
                         <AddIcon fontSize="small" />
-                        <span>Select a job profile...</span>
+                        <span>Select a skill profile...</span>
                       </Box>
                     )}
                     sx={{ border: 'none', '& fieldset': { border: 'none' } }}
                   >
-                    {jobProfiles
-                      .filter((jp) => !skillJobProfiles.some((sjp) => sjp.id === jp.id))
+                    {skillProfiles
+                      .filter((sp) => !skillSkillProfiles.some((ssp) => ssp.id === sp.id))
                       .map((profile) => (
                         <MenuItem key={profile.id} value={profile.id}>
                           {profile.name}
@@ -272,7 +311,7 @@ export function SkillEditModal({ open, skill, jobProfiles, onClose, onSave }: Sk
               </Paper>
             ) : (
               <Typography variant="body2" color="text.secondary">
-                Save skill first to assign job profiles
+                Save skill first to assign skill profiles
               </Typography>
             )}
           </Box>
@@ -281,50 +320,82 @@ export function SkillEditModal({ open, skill, jobProfiles, onClose, onSave }: Sk
 
           {/* Skill Grades Section */}
           <Box sx={{ p: 3 }}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 2 }}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 1 }}>
               Skill Grades
+            </Typography>
+            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 2 }}>
+              Grades are ordered by level (1=Beginner to 5=Expert). Use arrows to change level.
             </Typography>
 
             {skill && skillGrades.length > 0 && (
-              <Stack spacing={1} sx={{ mb: 2 }}>
-                {skillGrades.map((grade, index) => (
-                  <Chip
-                    key={grade.id}
-                    label={`${index + 1}: ${grade.code}${grade.description ? ` (${grade.description})` : ''}`}
-                    icon={
-                      <Box
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
+                {[...skillGrades]
+                  .sort((a, b) => a.level - b.level)
+                  .map((grade) => (
+                    <Box
+                      key={grade.id}
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        bgcolor: getLevelColor(grade.level),
+                        borderRadius: 2,
+                        overflow: 'hidden',
+                      }}
+                    >
+                      <IconButton
+                        size="small"
+                        onClick={() => handleMoveGradeUp(grade)}
+                        disabled={grade.level <= 1}
                         sx={{
-                          width: 24,
-                          height: 24,
-                          borderRadius: '50%',
-                          bgcolor: '#3b82f6',
-                          color: 'white',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontSize: '0.75rem',
-                          fontWeight: 'bold',
+                          color: getLevelTextColor(grade.level),
+                          opacity: grade.level <= 1 ? 0.3 : 1,
+                          p: 0.5,
                         }}
                       >
-                        {index + 1}
-                      </Box>
-                    }
-                    onDelete={() => handleDeleteGrade(grade.id)}
-                    onClick={() => setEditingGrade(grade)}
-                    sx={{
-                      bgcolor: '#3b82f6',
-                      color: 'white',
-                      '& .MuiChip-deleteIcon': { color: 'white' },
-                      justifyContent: 'space-between',
-                    }}
-                  />
-                ))}
-              </Stack>
+                        <ArrowUpwardIcon sx={{ fontSize: 16 }} />
+                      </IconButton>
+                      <Chip
+                        label={
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                            <Typography variant="caption" sx={{ fontWeight: 'bold' }}>
+                              L{grade.level}
+                            </Typography>
+                            <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+                              {grade.code}
+                            </Typography>
+                          </Box>
+                        }
+                        onClick={() => setEditingGrade(grade)}
+                        onDelete={() => handleDeleteGrade(grade.id)}
+                        sx={{
+                          bgcolor: 'transparent',
+                          color: getLevelTextColor(grade.level),
+                          '& .MuiChip-deleteIcon': {
+                            color: getLevelTextColor(grade.level),
+                          },
+                          borderRadius: 0,
+                        }}
+                      />
+                      <IconButton
+                        size="small"
+                        onClick={() => handleMoveGradeDown(grade)}
+                        disabled={grade.level >= 5}
+                        sx={{
+                          color: getLevelTextColor(grade.level),
+                          opacity: grade.level >= 5 ? 0.3 : 1,
+                          p: 0.5,
+                        }}
+                      >
+                        <ArrowDownwardIcon sx={{ fontSize: 16 }} />
+                      </IconButton>
+                    </Box>
+                  ))}
+              </Box>
             )}
 
             {skill ? (
               <Box>
-                <Stack direction="row" spacing={2}>
+                <Stack direction="row" spacing={2} flexWrap="wrap" gap={1}>
                   <TextField
                     label="Code"
                     value={editingGrade ? editingGrade.code : newGrade.code}
@@ -334,19 +405,58 @@ export function SkillEditModal({ open, skill, jobProfiles, onClose, onSave }: Sk
                         : setNewGrade({ ...newGrade, code: e.target.value })
                     }
                     size="small"
-                    sx={{ flex: 1 }}
+                    sx={{ flex: '1 1 100px', minWidth: 100 }}
                   />
                   <TextField
                     label="Description"
-                    value={editingGrade ? editingGrade.description : newGrade.description}
+                    value={editingGrade ? editingGrade.description || '' : newGrade.description}
                     onChange={(e) =>
                       editingGrade
                         ? setEditingGrade({ ...editingGrade, description: e.target.value })
                         : setNewGrade({ ...newGrade, description: e.target.value })
                     }
                     size="small"
-                    sx={{ flex: 2 }}
+                    sx={{ flex: '2 1 150px', minWidth: 150 }}
                   />
+                  <FormControl size="small" sx={{ minWidth: 130 }}>
+                    <Select
+                      value={editingGrade ? editingGrade.level : newGrade.level}
+                      onChange={(e) =>
+                        editingGrade
+                          ? setEditingGrade({ ...editingGrade, level: Number(e.target.value) })
+                          : setNewGrade({ ...newGrade, level: Number(e.target.value) })
+                      }
+                      renderValue={(value) => (
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <Box
+                            sx={{
+                              width: 16,
+                              height: 16,
+                              borderRadius: 0.5,
+                              bgcolor: getLevelColor(value as number),
+                            }}
+                          />
+                          <span>L{value} - {getLevelLabel(value as number)}</span>
+                        </Box>
+                      )}
+                    >
+                      {[1, 2, 3, 4, 5].map((level) => (
+                        <MenuItem key={level} value={level}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <Box
+                              sx={{
+                                width: 16,
+                                height: 16,
+                                borderRadius: 0.5,
+                                bgcolor: getLevelColor(level),
+                              }}
+                            />
+                            <span>L{level} - {getLevelLabel(level)}</span>
+                          </Box>
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
                   <Button
                     variant="contained"
                     onClick={editingGrade ? handleUpdateGrade : handleAddGrade}
