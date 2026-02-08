@@ -14,6 +14,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional(readOnly = true)
@@ -32,28 +34,66 @@ public class SkillService {
     }
 
     public List<SkillResponse> getAllSkills() {
-        return skillRepository.findAll().stream()
-                .map(skill -> {
-                    List<SkillProfile> skillProfiles = skillProfileSkillRepository.findBySkillId(skill.getId())
-                            .stream()
-                            .map(sps -> sps.getSkillProfile())
-                            .toList();
-                    List<SkillGrade> grades = skillGradeRepository.findBySkillId(skill.getId());
-                    return SkillResponse.fromEntity(skill, skillProfiles, grades);
-                })
-                .toList();
+        List<Skill> skills = skillRepository.findAll();
+        return enrichSkillsWithRelations(skills);
     }
 
     public Page<SkillResponse> getAllSkills(Pageable pageable) {
-        return skillRepository.findAll(pageable)
-                .map(skill -> {
-                    List<SkillProfile> skillProfiles = skillProfileSkillRepository.findBySkillId(skill.getId())
-                            .stream()
-                            .map(sps -> sps.getSkillProfile())
-                            .toList();
-                    List<SkillGrade> grades = skillGradeRepository.findBySkillId(skill.getId());
-                    return SkillResponse.fromEntity(skill, skillProfiles, grades);
-                });
+        Page<Skill> skillsPage = skillRepository.findAll(pageable);
+        List<Skill> skills = skillsPage.getContent();
+
+        if (skills.isEmpty()) {
+            return skillsPage.map(skill -> SkillResponse.fromEntity(skill, List.of(), List.of()));
+        }
+
+        // Batch load all related data
+        List<Long> skillIds = skills.stream().map(Skill::getId).toList();
+
+        Map<Long, List<SkillProfile>> skillProfilesMap = skillProfileSkillRepository.findBySkillIdIn(skillIds)
+                .stream()
+                .collect(Collectors.groupingBy(
+                        sps -> sps.getSkill().getId(),
+                        Collectors.mapping(sps -> sps.getSkillProfile(), Collectors.toList())
+                ));
+
+        Map<Long, List<SkillGrade>> gradesMap = skillGradeRepository.findBySkillIdIn(skillIds)
+                .stream()
+                .collect(Collectors.groupingBy(grade -> grade.getSkill().getId()));
+
+        // Map skills to responses using pre-loaded data
+        return skillsPage.map(skill -> SkillResponse.fromEntity(
+                skill,
+                skillProfilesMap.getOrDefault(skill.getId(), List.of()),
+                gradesMap.getOrDefault(skill.getId(), List.of())
+        ));
+    }
+
+    private List<SkillResponse> enrichSkillsWithRelations(List<Skill> skills) {
+        if (skills.isEmpty()) {
+            return List.of();
+        }
+
+        List<Long> skillIds = skills.stream().map(Skill::getId).toList();
+
+        // Batch load all skill profiles and grades in 2 queries instead of N+1
+        Map<Long, List<SkillProfile>> skillProfilesMap = skillProfileSkillRepository.findBySkillIdIn(skillIds)
+                .stream()
+                .collect(Collectors.groupingBy(
+                        sps -> sps.getSkill().getId(),
+                        Collectors.mapping(sps -> sps.getSkillProfile(), Collectors.toList())
+                ));
+
+        Map<Long, List<SkillGrade>> gradesMap = skillGradeRepository.findBySkillIdIn(skillIds)
+                .stream()
+                .collect(Collectors.groupingBy(grade -> grade.getSkill().getId()));
+
+        return skills.stream()
+                .map(skill -> SkillResponse.fromEntity(
+                        skill,
+                        skillProfilesMap.getOrDefault(skill.getId(), List.of()),
+                        gradesMap.getOrDefault(skill.getId(), List.of())
+                ))
+                .toList();
     }
 
     public SkillResponse getSkillById(Long id) {

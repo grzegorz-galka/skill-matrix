@@ -30,6 +30,15 @@ public interface SkillProfileSkillRepository extends JpaRepository<SkillProfileS
     List<SkillProfileSkill> findBySkillId(@Param("skillId") Long skillId);
 
     /**
+     * Find all skill profile-skill associations for given skill IDs (batch loading).
+     *
+     * @param skillIds the skill IDs
+     * @return list of associations with skill profiles eagerly fetched
+     */
+    @Query("SELECT sps FROM SkillProfileSkill sps JOIN FETCH sps.skillProfile WHERE sps.skill.id IN :skillIds")
+    List<SkillProfileSkill> findBySkillIdIn(@Param("skillIds") List<Long> skillIds);
+
+    /**
      * Check if an association exists between a skill profile and a skill.
      *
      * @param skillProfileId the skill profile ID

@@ -16,6 +16,8 @@ import {
   FormControlLabel,
   Switch,
   Autocomplete,
+  Snackbar,
+  Alert,
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import SchoolIcon from '@mui/icons-material/School';
@@ -56,6 +58,12 @@ export function EmployeeSkillsPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hasChanges, setHasChanges] = useState(false);
+  const [originalPossessedSkills, setOriginalPossessedSkills] = useState<PossessedSkill[]>([]);
+  const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({
+    open: false,
+    message: '',
+    severity: 'success',
+  });
 
   // Load all skills and their grades
   useEffect(() => {
@@ -89,6 +97,7 @@ export function EmployeeSkillsPage() {
   useEffect(() => {
     if (!selectedEmployee) {
       setPossessedSkills([]);
+      setOriginalPossessedSkills([]);
       setEmployeeSkillProfiles([]);
       setHasChanges(false);
       return;
@@ -123,6 +132,7 @@ export function EmployeeSkillsPage() {
         });
 
         setPossessedSkills(possessed);
+        setOriginalPossessedSkills(possessed);
         setHasChanges(false);
         setError(null);
       } catch (err) {
@@ -201,9 +211,9 @@ export function EmployeeSkillsPage() {
     try {
       setLoading(true);
 
-      // Delete removed skills
+      // Delete removed skills - compare current possessedSkills against original state
       const currentSkillIds = new Set(possessedSkills.map(ps => ps.skill.id));
-      const toDelete = possessedSkills
+      const toDelete = originalPossessedSkills
         .filter(ps => ps.employeeSkillGradeId && !currentSkillIds.has(ps.skill.id))
         .map(ps => ps.employeeSkillGradeId!);
 
@@ -229,7 +239,7 @@ export function EmployeeSkillsPage() {
       }
 
       setHasChanges(false);
-      alert('Changes saved successfully');
+      setSnackbar({ open: true, message: 'Changes saved successfully', severity: 'success' });
 
       // Reload employee skills
       const employeeSkillGrades = await employeeSkillGradeService.getByEmployeeId(selectedEmployee.id);
@@ -249,9 +259,10 @@ export function EmployeeSkillsPage() {
         };
       });
       setPossessedSkills(possessed);
+      setOriginalPossessedSkills(possessed);
 
     } catch (err) {
-      alert('Failed to save changes');
+      setSnackbar({ open: true, message: 'Failed to save changes', severity: 'error' });
       console.error(err);
     } finally {
       setLoading(false);
@@ -261,10 +272,15 @@ export function EmployeeSkillsPage() {
   const handleCancel = () => {
     setSelectedEmployee(null);
     setPossessedSkills([]);
+    setOriginalPossessedSkills([]);
     setEmployeeSkillProfiles([]);
     setSelectedAvailableSkills(new Set());
     setSelectedPossessedSkills(new Set());
     setHasChanges(false);
+  };
+
+  const handleSnackbarClose = () => {
+    setSnackbar({ ...snackbar, open: false });
   };
 
   if (employeesLoading || loading) return <Loading />;
@@ -660,6 +676,17 @@ export function EmployeeSkillsPage() {
           </>
         )}
       </Container>
+
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={handleSnackbarClose}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert onClose={handleSnackbarClose} severity={snackbar.severity} sx={{ width: '100%' }}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }
