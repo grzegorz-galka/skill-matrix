@@ -1,4 +1,4 @@
-2-- Create skill_grade table
+-- Create skill_grade table
 CREATE TABLE skill_grade (
     id BIGSERIAL PRIMARY KEY,
     skill_id BIGINT NOT NULL,
