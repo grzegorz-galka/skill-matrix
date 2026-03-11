@@ -1,18 +1,18 @@
 // Level color scheme: 1=light yellow to 5=intensive green
 export const LEVEL_COLORS: Record<number, string> = {
-  1: '#fef9c3', // light yellow
-  2: '#fde047', // yellow
-  3: '#bef264', // light green
-  4: '#4ade80', // green
-  5: '#16a34a', // intensive green
+  1: '#FEF9C3', // Pale Yellow-Green (Sprout)
+  2: '#D9F99D', // Light Lime (Seedling)
+  3: '#4ADE80', // Vivid Green (Growth)
+  4: '#16A34A', // Mature Green (Tree)
+  5: '#14532D', // Dark Forest (Old Growth)
 };
 
 export const LEVEL_TEXT_COLORS: Record<number, string> = {
-  1: '#713f12', // dark text for light background
-  2: '#713f12', // dark text for light background
-  3: '#166534', // dark green text
-  4: '#166534', // dark green text
-  5: '#ffffff', // white text for dark background
+  1: '#854D0E', // Earthy Brown (Roots)
+  2: '#3F6212', // Dark Lime
+  3: '#064E3B', // Deep Green
+  4: '#FFFFFF', // White (Switches for contrast)
+  5: '#FFFFFF', // White
 };
 
 export const getLevelColor = (level: number): string => {
