@@ -168,12 +168,24 @@ oc new-app postgresql:16-el9 \
   -e POSTGRESQL_PASSWORD=skills_pass \
   -e POSTGRESQL_DATABASE=skills_db
 
+# If postgresql:16-el9 does not exists in OCP registry
+oc new-app --docker-image=registry.redhat.io/rhel9/postgresql-16 \
+  --name=postgresql \
+  -e POSTGRESQL_USER=skills_user \
+  -e POSTGRESQL_PASSWORD=skills_pass \
+  -e POSTGRESQL_DATABASE=skills_db  
+
 # Create PVC for PostgreSQL data
 oc set volume deployment/postgresql \
   --add --name=postgresql-data \
   --type=pvc \
   --claim-size=1Gi \
   --mount-path=/var/lib/pgsql/data
+  
+# Set resources
+oc set resources deployment/postgresql \
+  --requests=cpu=200m,memory=256Mi \
+  --limits=cpu=500m,memory=512Mi
 
 # Wait for PostgreSQL to be ready
 oc rollout status deployment/postgresql
@@ -347,6 +359,37 @@ oc delete pvc --all
 ```
 
 ---
+
+## To rebuild and redeploy after pushing new commits:
+
+Rebuild Backend:
+
+```bash  
+# Start a new build from latest GitHub code
+oc start-build backend --follow
+```
+
+The deployment will automatically update when build completes
+
+Rebuild Frontend:
+```bash  
+  oc start-build frontend --follow
+```
+
+Useful commands:
+```bash 
+# Check build status
+oc get builds
+
+# Watch build logs
+oc logs -f bc/backend
+
+# Check if new pods are deploying
+oc get pods -w
+
+# Force a rollout if needed (after build completes)
+oc rollout restart deployment/backend
+```
 
 ## Summary
 
