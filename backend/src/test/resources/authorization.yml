@@ -1,0 +1,8 @@
+admins:
+  - admin@example.com
+
+reviewers:
+  - email: reviewer@example.com
+    permissions:
+      department.patterns: ["IT*"]
+      skill.patterns: ["*Java*"]

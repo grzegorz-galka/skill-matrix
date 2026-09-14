@@ -30,8 +30,11 @@ import { Loading } from '../components/Loading';
 import { ErrorMessage } from '../components/ErrorMessage';
 import { Employee, EmployeeRequest, SkillProfile } from '../types';
 import { employeeService } from '../services/employeeService';
+import { getApiErrorMessage } from '../utils/apiError';
+import { useAuth } from '../auth/AuthContext';
 
 export function EmployeesPage() {
+  const { user, isAdmin } = useAuth();
   const [page] = useState(0);
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
@@ -99,7 +102,7 @@ export function EmployeesPage() {
         await employeeService.delete(employee.id);
         refetch();
       } catch (err) {
-        alert('Failed to delete employee');
+        alert(getApiErrorMessage(err, 'Failed to delete employee'));
       }
     }
   };
@@ -115,7 +118,7 @@ export function EmployeesPage() {
       setShowForm(false);
       refetch();
     } catch (err) {
-      alert('Failed to save employee');
+      alert(getApiErrorMessage(err, 'Failed to save employee'));
     }
   };
 
@@ -127,7 +130,7 @@ export function EmployeesPage() {
       const updatedProfiles = await employeeService.getSkillProfiles(editingEmployee.id);
       setEmployeeSkillProfiles(updatedProfiles);
     } catch (err) {
-      alert('Failed to assign skill profile');
+      alert(getApiErrorMessage(err, 'Failed to assign skill profile'));
       console.error(err);
     }
   };
@@ -141,7 +144,7 @@ export function EmployeesPage() {
         const updatedProfiles = await employeeService.getSkillProfiles(editingEmployee.id);
         setEmployeeSkillProfiles(updatedProfiles);
       } catch (err) {
-        alert('Failed to remove skill profile');
+        alert(getApiErrorMessage(err, 'Failed to remove skill profile'));
         console.error(err);
       }
     }
@@ -180,20 +183,22 @@ export function EmployeesPage() {
               </Typography>
             </Box>
           </Box>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={handleCreate}
-            sx={{
-              bgcolor: '#2563eb',
-              '&:hover': { bgcolor: '#1d4ed8' },
-              textTransform: 'none',
-              px: 3,
-              py: 1,
-            }}
-          >
-            Add Employee
-          </Button>
+          {isAdmin && (
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={handleCreate}
+              sx={{
+                bgcolor: '#2563eb',
+                '&:hover': { bgcolor: '#1d4ed8' },
+                textTransform: 'none',
+                px: 3,
+                py: 1,
+              }}
+            >
+              Add Employee
+            </Button>
+          )}
         </Box>
 
         {/* Two Column Layout */}
@@ -277,20 +282,24 @@ export function EmployeesPage() {
                         </Stack>
                       </Box>
                       <Stack direction="row" spacing={1}>
-                        <IconButton
-                          size="small"
-                          onClick={() => handleEdit(employee)}
-                          sx={{ color: '#2563eb' }}
-                        >
-                          <EditIcon fontSize="small" />
-                        </IconButton>
-                        <IconButton
-                          size="small"
-                          onClick={() => handleDelete(employee)}
-                          sx={{ color: '#ef4444' }}
-                        >
-                          <DeleteIcon fontSize="small" />
-                        </IconButton>
+                        {(isAdmin || user?.email === employee.email) && (
+                          <IconButton
+                            size="small"
+                            onClick={() => handleEdit(employee)}
+                            sx={{ color: '#2563eb' }}
+                          >
+                            <EditIcon fontSize="small" />
+                          </IconButton>
+                        )}
+                        {isAdmin && (
+                          <IconButton
+                            size="small"
+                            onClick={() => handleDelete(employee)}
+                            sx={{ color: '#ef4444' }}
+                          >
+                            <DeleteIcon fontSize="small" />
+                          </IconButton>
+                        )}
                       </Stack>
                     </Box>
                   </Paper>

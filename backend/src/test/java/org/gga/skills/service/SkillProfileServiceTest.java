@@ -1,7 +1,10 @@
 package org.gga.skills.service;
 
+import org.gga.skills.dto.CurrentUser;
 import org.gga.skills.dto.SkillProfileRequest;
 import org.gga.skills.dto.SkillProfileResponse;
+import org.gga.skills.model.Employee;
+import org.gga.skills.model.Role;
 import org.gga.skills.model.SkillProfile;
 import org.gga.skills.repository.SkillProfileRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,6 +25,8 @@ class SkillProfileServiceTest {
 
     @Mock
     private SkillProfileRepository skillProfileRepository;
+    @Mock
+    private CurrentUserService currentUserService;
 
     @InjectMocks
     private SkillProfileService skillProfileService;
@@ -32,6 +37,11 @@ class SkillProfileServiceTest {
     void setUp() {
         existingProfile = new SkillProfile("Java Developer", "Java skills");
         existingProfile.setId(1L);
+
+        Employee adminEmployee = new Employee("Admin", "User", "admin@example.com");
+        adminEmployee.setId(99L);
+        lenient().when(currentUserService.getCurrentUser())
+                .thenReturn(new CurrentUser(adminEmployee, Role.ADMIN));
     }
 
     // --- CREATE TESTS ---

@@ -5,10 +5,10 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.gga.skills.dto.EmployeeRequest;
 import org.gga.skills.dto.EmployeeResponse;
+import org.gga.skills.dto.PageResponse;
 import org.gga.skills.dto.SkillProfileResponse;
 import org.gga.skills.service.EmployeeService;
 import org.gga.skills.service.EmployeeSkillProfileService;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -31,13 +31,13 @@ public class EmployeeController {
 
     @GetMapping
     @Operation(summary = "Get all employees or search", description = "Retrieve a paginated list of all employees, or search by name/email if search parameter is provided")
-    public Page<EmployeeResponse> getAllEmployees(
+    public PageResponse<EmployeeResponse> getAllEmployees(
             @RequestParam(required = false) String search,
             Pageable pageable) {
         if (search != null && !search.trim().isEmpty()) {
-            return employeeService.searchEmployees(search, pageable);
+            return PageResponse.from(employeeService.searchEmployees(search, pageable));
         }
-        return employeeService.getAllEmployees(pageable);
+        return PageResponse.from(employeeService.getAllEmployees(pageable));
     }
 
     @GetMapping("/{id}")

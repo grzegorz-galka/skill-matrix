@@ -24,8 +24,12 @@ import { ErrorMessage } from '../components/ErrorMessage';
 import { SkillRequest, SkillGrade, SkillGradeRequest } from '../types';
 import { skillService } from '../services/skillService';
 import { skillGradeService } from '../services/skillGradeService';
+import { LEVEL_LABELS } from '../utils/levelColors';
+import { getApiErrorMessage } from '../utils/apiError';
+import { useAuth } from '../auth/AuthContext';
 
 export function SkillDetailsPage() {
+  const { isAdmin } = useAuth();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const skillId = Number(id);
@@ -62,6 +66,7 @@ export function SkillDetailsPage() {
     skillId: skillId,
     code: '',
     description: '',
+    level: 1,
   });
 
   // Initialize skill form when skill loads
@@ -100,7 +105,7 @@ export function SkillDetailsPage() {
       setSkillDirty(false);
       alert('Skill updated successfully');
     } catch (err) {
-      alert('Failed to update skill');
+      alert(getApiErrorMessage(err, 'Failed to update skill'));
       console.error(err);
     } finally {
       setSkillSaving(false);
@@ -123,7 +128,7 @@ export function SkillDetailsPage() {
       await skillService.addSkillProfile(skillId, skillProfileId);
       refetchSkill();
     } catch (err) {
-      alert('Failed to add skill profile');
+      alert(getApiErrorMessage(err, 'Failed to add skill profile'));
       console.error(err);
     }
   };
@@ -134,7 +139,7 @@ export function SkillDetailsPage() {
         await skillService.removeSkillProfile(skillId, skillProfileId);
         refetchSkill();
       } catch (err) {
-        alert('Failed to remove skill profile');
+        alert(getApiErrorMessage(err, 'Failed to remove skill profile'));
         console.error(err);
       }
     }
@@ -157,6 +162,7 @@ export function SkillDetailsPage() {
       skillId: skillId,
       code: '',
       description: '',
+      level: 1,
     });
     setShowGradeForm(true);
   };
@@ -167,6 +173,7 @@ export function SkillDetailsPage() {
       skillId: skillId,
       code: grade.code,
       description: grade.description || '',
+      level: grade.level,
     });
     setShowGradeForm(true);
   };
@@ -182,7 +189,7 @@ export function SkillDetailsPage() {
       setShowGradeForm(false);
       refetchGrades();
     } catch (err) {
-      alert('Failed to save skill grade');
+      alert(getApiErrorMessage(err, 'Failed to save skill grade'));
       console.error(err);
     }
   };
@@ -193,7 +200,7 @@ export function SkillDetailsPage() {
         await skillGradeService.delete(grade.id);
         refetchGrades();
       } catch (err) {
-        alert('Failed to delete skill grade');
+        alert(getApiErrorMessage(err, 'Failed to delete skill grade'));
         console.error(err);
       }
     }
@@ -220,6 +227,11 @@ export function SkillDetailsPage() {
 
   const gradeColumns = [
     { key: 'code', header: 'Code' },
+    {
+      key: 'level',
+      header: 'Level',
+      render: (grade: SkillGrade) => `L${grade.level}: ${LEVEL_LABELS[grade.level] ?? ''}`,
+    },
     { key: 'description', header: 'Description' },
   ];
 
@@ -335,9 +347,11 @@ export function SkillDetailsPage() {
           <Typography variant="h5" component="h2">
             Skill Grades
           </Typography>
-          <Button variant="contained" color="primary" onClick={handleGradeCreate}>
-            Add Grade
-          </Button>
+          {isAdmin && (
+            <Button variant="contained" color="primary" onClick={handleGradeCreate}>
+              Add Grade
+            </Button>
+          )}
         </Box>
 
         {/* Grade Form */}
@@ -358,6 +372,23 @@ export function SkillDetailsPage() {
                   variant="outlined"
                   size="small"
                 />
+                <TextField
+                  select
+                  label="Level"
+                  value={gradeFormData.level ?? 1}
+                  onChange={(e) => setGradeFormData({ ...gradeFormData, level: Number(e.target.value) })}
+                  required
+                  helperText="Ranks this grade against the skill's other grades"
+                  fullWidth
+                  variant="outlined"
+                  size="small"
+                >
+                  {[1, 2, 3, 4, 5].map((level) => (
+                    <MenuItem key={level} value={level}>
+                      {`L${level}: ${LEVEL_LABELS[level]}`}
+                    </MenuItem>
+                  ))}
+                </TextField>
                 <TextField
                   label="Description"
                   value={gradeFormData.description}
@@ -390,8 +421,8 @@ export function SkillDetailsPage() {
           <DataTable
             data={skillGrades}
             columns={gradeColumns}
-            onEdit={handleGradeEdit}
-            onDelete={handleGradeDelete}
+            onEdit={isAdmin ? handleGradeEdit : undefined}
+            onDelete={isAdmin ? handleGradeDelete : undefined}
           />
         )}
       </Box>

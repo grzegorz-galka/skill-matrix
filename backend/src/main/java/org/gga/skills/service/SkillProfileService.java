@@ -1,11 +1,14 @@
 package org.gga.skills.service;
 
+import org.gga.skills.dto.CurrentUser;
 import org.gga.skills.dto.SkillProfileRequest;
 import org.gga.skills.dto.SkillProfileResponse;
+import org.gga.skills.model.Role;
 import org.gga.skills.model.SkillProfile;
 import org.gga.skills.repository.SkillProfileRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,9 +19,19 @@ import java.util.List;
 public class SkillProfileService {
 
     private final SkillProfileRepository skillProfileRepository;
+    private final CurrentUserService currentUserService;
 
-    public SkillProfileService(SkillProfileRepository skillProfileRepository) {
+    public SkillProfileService(SkillProfileRepository skillProfileRepository,
+                               CurrentUserService currentUserService) {
         this.skillProfileRepository = skillProfileRepository;
+        this.currentUserService = currentUserService;
+    }
+
+    private void requireAdmin() {
+        CurrentUser currentUser = currentUserService.getCurrentUser();
+        if (currentUser.role() != Role.ADMIN) {
+            throw new AccessDeniedException("Only admins can manage skill profiles");
+        }
     }
 
     public List<SkillProfileResponse> getAllSkillProfiles() {
@@ -40,6 +53,7 @@ public class SkillProfileService {
 
     @Transactional
     public SkillProfileResponse createSkillProfile(SkillProfileRequest request) {
+        requireAdmin();
         if (skillProfileRepository.existsByName(request.name())) {
             throw new DuplicateResourceException("Skill profile with name " + request.name() + " already exists");
         }
@@ -55,6 +69,7 @@ public class SkillProfileService {
 
     @Transactional
     public SkillProfileResponse updateSkillProfile(Long id, SkillProfileRequest request) {
+        requireAdmin();
         SkillProfile skillProfile = skillProfileRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Skill profile not found with id: " + id));
 
@@ -72,6 +87,7 @@ public class SkillProfileService {
 
     @Transactional
     public void deleteSkillProfile(Long id) {
+        requireAdmin();
         if (!skillProfileRepository.existsById(id)) {
             throw new ResourceNotFoundException("Skill profile not found with id: " + id);
         }

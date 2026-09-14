@@ -28,8 +28,11 @@ import { SkillEditModal } from '../components/SkillEditModal';
 import { Skill } from '../types';
 import { skillService } from '../services/skillService';
 import { getLevelColor, getLevelTextColor } from '../utils/levelColors';
+import { getApiErrorMessage } from '../utils/apiError';
+import { useAuth } from '../auth/AuthContext';
 
 export function SkillsPage() {
+  const { isAdmin } = useAuth();
   const [page] = useState(0);
   const { skills, loading, error, refetch } = useSkills(page, 20);
   const { skillProfiles } = useSkillProfiles();
@@ -52,7 +55,7 @@ export function SkillsPage() {
         await skillService.delete(skill.id);
         refetch();
       } catch (err) {
-        alert('Failed to delete skill');
+        alert(getApiErrorMessage(err, 'Failed to delete skill'));
       }
     }
   };
@@ -87,20 +90,22 @@ export function SkillsPage() {
               </Typography>
             </Box>
           </Box>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={handleCreate}
-            sx={{
-              bgcolor: '#8b5cf6',
-              '&:hover': { bgcolor: '#7c3aed' },
-              textTransform: 'none',
-              px: 3,
-              py: 1,
-            }}
-          >
-            Add Skill
-          </Button>
+          {isAdmin && (
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={handleCreate}
+              sx={{
+                bgcolor: '#8b5cf6',
+                '&:hover': { bgcolor: '#7c3aed' },
+                textTransform: 'none',
+                px: 3,
+                py: 1,
+              }}
+            >
+              Add Skill
+            </Button>
+          )}
         </Box>
 
         {/* Skills Table */}
@@ -186,20 +191,24 @@ export function SkillsPage() {
                     </TableCell>
                     <TableCell sx={{ py: 2, textAlign: 'right' }}>
                       <Stack direction="row" spacing={1} justifyContent="flex-end">
-                        <IconButton
-                          size="small"
-                          onClick={() => handleEdit(skill)}
-                          sx={{ color: '#2563eb' }}
-                        >
-                          <EditIcon fontSize="small" />
-                        </IconButton>
-                        <IconButton
-                          size="small"
-                          onClick={() => handleDelete(skill)}
-                          sx={{ color: '#ef4444' }}
-                        >
-                          <DeleteIcon fontSize="small" />
-                        </IconButton>
+                        {isAdmin && (
+                          <>
+                            <IconButton
+                              size="small"
+                              onClick={() => handleEdit(skill)}
+                              sx={{ color: '#2563eb' }}
+                            >
+                              <EditIcon fontSize="small" />
+                            </IconButton>
+                            <IconButton
+                              size="small"
+                              onClick={() => handleDelete(skill)}
+                              sx={{ color: '#ef4444' }}
+                            >
+                              <DeleteIcon fontSize="small" />
+                            </IconButton>
+                          </>
+                        )}
                       </Stack>
                     </TableCell>
                   </TableRow>

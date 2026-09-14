@@ -5,10 +5,10 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.gga.skills.dto.SkillProfileResponse;
 import org.gga.skills.dto.SkillRequest;
+import org.gga.skills.dto.PageResponse;
 import org.gga.skills.dto.SkillResponse;
 import org.gga.skills.service.SkillProfileSkillService;
 import org.gga.skills.service.SkillService;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -31,8 +31,8 @@ public class SkillController {
 
     @GetMapping
     @Operation(summary = "Get all skills", description = "Retrieve all skills with pagination")
-    public Page<SkillResponse> getAllSkills(Pageable pageable) {
-        return skillService.getAllSkills(pageable);
+    public PageResponse<SkillResponse> getAllSkills(Pageable pageable) {
+        return PageResponse.from(skillService.getAllSkills(pageable));
     }
 
     @GetMapping("/{id}")

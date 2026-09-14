@@ -5,6 +5,8 @@ import {
   Toolbar,
   Typography,
   Button,
+  Chip,
+  Tooltip,
   IconButton,
   Drawer,
   List,
@@ -17,6 +19,8 @@ import {
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
+import LogoutIcon from '@mui/icons-material/Logout';
+import { useAuth } from '../../auth/AuthContext';
 
 interface LayoutProps {
   children: ReactNode;
@@ -24,6 +28,7 @@ interface LayoutProps {
 
 export function Layout({ children }: LayoutProps) {
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const { user, logout } = useAuth();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
@@ -102,6 +107,31 @@ export function Layout({ children }: LayoutProps) {
                   {item.label}
                 </Button>
               ))}
+            </Box>
+          )}
+          <Box sx={{ flexGrow: 1 }} />
+          {user && (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+              {!isMobile && (
+                <Box sx={{ textAlign: 'right', lineHeight: 1.2 }}>
+                  <Typography variant="body2" sx={{ color: 'white', fontWeight: 500 }}>
+                    {user.firstName} {user.lastName}
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: '#94a3b8' }}>
+                    {user.email}
+                  </Typography>
+                </Box>
+              )}
+              <Chip
+                label={user.role}
+                size="small"
+                sx={{ bgcolor: '#1e293b', color: '#60a5fa', fontWeight: 600 }}
+              />
+              <Tooltip title="Sign out">
+                <IconButton aria-label="Sign out" onClick={logout} sx={{ color: '#cbd5e1' }}>
+                  <LogoutIcon />
+                </IconButton>
+              </Tooltip>
             </Box>
           )}
         </Toolbar>

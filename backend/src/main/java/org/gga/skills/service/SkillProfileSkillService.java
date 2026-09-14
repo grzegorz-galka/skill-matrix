@@ -1,11 +1,14 @@
 package org.gga.skills.service;
 
+import org.gga.skills.dto.CurrentUser;
+import org.gga.skills.model.Role;
 import org.gga.skills.model.SkillProfile;
 import org.gga.skills.model.SkillProfileSkill;
 import org.gga.skills.model.Skill;
 import org.gga.skills.repository.SkillProfileRepository;
 import org.gga.skills.repository.SkillProfileSkillRepository;
 import org.gga.skills.repository.SkillRepository;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,13 +21,23 @@ public class SkillProfileSkillService {
     private final SkillProfileSkillRepository skillProfileSkillRepository;
     private final SkillProfileRepository skillProfileRepository;
     private final SkillRepository skillRepository;
+    private final CurrentUserService currentUserService;
 
     public SkillProfileSkillService(SkillProfileSkillRepository skillProfileSkillRepository,
                                     SkillProfileRepository skillProfileRepository,
-                                    SkillRepository skillRepository) {
+                                    SkillRepository skillRepository,
+                                    CurrentUserService currentUserService) {
         this.skillProfileSkillRepository = skillProfileSkillRepository;
         this.skillProfileRepository = skillProfileRepository;
         this.skillRepository = skillRepository;
+        this.currentUserService = currentUserService;
+    }
+
+    private void requireAdmin() {
+        CurrentUser currentUser = currentUserService.getCurrentUser();
+        if (currentUser.role() != Role.ADMIN) {
+            throw new AccessDeniedException("Only admins can manage skill-profile associations");
+        }
     }
 
     /**
@@ -63,6 +76,7 @@ public class SkillProfileSkillService {
      */
     @Transactional
     public void associateSkillWithSkillProfile(Long skillId, Long skillProfileId) {
+        requireAdmin();
         // Validate that skill profile exists
         SkillProfile skillProfile = skillProfileRepository.findById(skillProfileId)
                 .orElseThrow(() -> new ResourceNotFoundException("Skill profile not found with id: " + skillProfileId));
@@ -90,6 +104,7 @@ public class SkillProfileSkillService {
      */
     @Transactional
     public void removeAssociation(Long skillId, Long skillProfileId) {
+        requireAdmin();
         // Check if association exists
         if (!skillProfileSkillRepository.existsBySkillProfileIdAndSkillId(skillProfileId, skillId)) {
             throw new ResourceNotFoundException("Association not found between skill " + skillId + " and skill profile " + skillProfileId);

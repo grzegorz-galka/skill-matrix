@@ -1,13 +1,16 @@
 package org.gga.skills.service;
 
+import org.gga.skills.dto.CurrentUser;
 import org.gga.skills.dto.SkillGradeRequest;
 import org.gga.skills.dto.SkillGradeResponse;
+import org.gga.skills.model.Role;
 import org.gga.skills.model.Skill;
 import org.gga.skills.model.SkillGrade;
 import org.gga.skills.repository.SkillGradeRepository;
 import org.gga.skills.repository.SkillRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,10 +22,21 @@ public class SkillGradeService {
 
     private final SkillGradeRepository skillGradeRepository;
     private final SkillRepository skillRepository;
+    private final CurrentUserService currentUserService;
 
-    public SkillGradeService(SkillGradeRepository skillGradeRepository, SkillRepository skillRepository) {
+    public SkillGradeService(SkillGradeRepository skillGradeRepository,
+                             SkillRepository skillRepository,
+                             CurrentUserService currentUserService) {
         this.skillGradeRepository = skillGradeRepository;
         this.skillRepository = skillRepository;
+        this.currentUserService = currentUserService;
+    }
+
+    private void requireAdmin() {
+        CurrentUser currentUser = currentUserService.getCurrentUser();
+        if (currentUser.role() != Role.ADMIN) {
+            throw new AccessDeniedException("Only admins can manage skill grades");
+        }
     }
 
     public List<SkillGradeResponse> getAllSkillGrades() {
@@ -53,6 +67,7 @@ public class SkillGradeService {
 
     @Transactional
     public SkillGradeResponse createSkillGrade(SkillGradeRequest request) {
+        requireAdmin();
         if (skillGradeRepository.existsBySkillIdAndCode(request.skillId(), request.code())) {
             throw new DuplicateResourceException("Skill grade with code " + request.code() +
                     " already exists for skill id: " + request.skillId());
@@ -69,6 +84,7 @@ public class SkillGradeService {
 
     @Transactional
     public SkillGradeResponse updateSkillGrade(Long id, SkillGradeRequest request) {
+        requireAdmin();
         SkillGrade skillGrade = skillGradeRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Skill grade not found with id: " + id));
 
@@ -95,6 +111,7 @@ public class SkillGradeService {
 
     @Transactional
     public void deleteSkillGrade(Long id) {
+        requireAdmin();
         if (!skillGradeRepository.existsById(id)) {
             throw new ResourceNotFoundException("Skill grade not found with id: " + id);
         }

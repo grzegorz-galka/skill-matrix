@@ -6,8 +6,11 @@ import { Loading } from '../components/Loading';
 import { ErrorMessage } from '../components/ErrorMessage';
 import { SkillProfile, SkillProfileRequest } from '../types';
 import { skillProfileService } from '../services/skillProfileService';
+import { getApiErrorMessage } from '../utils/apiError';
+import { useAuth } from '../auth/AuthContext';
 
 export function SkillProfilesPage() {
+  const { isAdmin } = useAuth();
   const { skillProfiles, loading, error, refetch } = useSkillProfiles();
   const [showForm, setShowForm] = useState(false);
   const [editingProfile, setEditingProfile] = useState<SkillProfile | null>(null);
@@ -37,7 +40,7 @@ export function SkillProfilesPage() {
         await skillProfileService.delete(profile.id);
         refetch();
       } catch (err) {
-        alert('Failed to delete skill profile');
+        alert(getApiErrorMessage(err, 'Failed to delete skill profile'));
       }
     }
   };
@@ -53,7 +56,7 @@ export function SkillProfilesPage() {
       setShowForm(false);
       refetch();
     } catch (err) {
-      alert('Failed to save skill profile');
+      alert(getApiErrorMessage(err, 'Failed to save skill profile'));
     }
   };
 
@@ -71,9 +74,11 @@ export function SkillProfilesPage() {
         <Typography variant="h4" component="h1">
           Skill Profiles
         </Typography>
-        <Button variant="contained" color="primary" onClick={handleCreate}>
-          Add Skill Profile
-        </Button>
+        {isAdmin && (
+          <Button variant="contained" color="primary" onClick={handleCreate}>
+            Add Skill Profile
+          </Button>
+        )}
       </Box>
 
       {showForm && (
@@ -117,8 +122,8 @@ export function SkillProfilesPage() {
       <DataTable
         data={skillProfiles}
         columns={columns}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
+        onEdit={isAdmin ? handleEdit : undefined}
+        onDelete={isAdmin ? handleDelete : undefined}
       />
     </Container>
   );

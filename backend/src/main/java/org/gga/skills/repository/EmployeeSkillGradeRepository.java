@@ -25,4 +25,7 @@ public interface EmployeeSkillGradeRepository extends JpaRepository<EmployeeSkil
 
     @Query("SELECT esg FROM EmployeeSkillGrade esg WHERE esg.reviewedBy.id = :reviewerId")
     List<EmployeeSkillGrade> findByReviewerId(Long reviewerId);
+
+    @Query("SELECT esg FROM EmployeeSkillGrade esg WHERE esg.employee.id = :employeeId AND esg.skillGrade.skill.id = :skillId")
+    List<EmployeeSkillGrade> findByEmployeeIdAndSkillId(Long employeeId, Long skillId);
 }

@@ -42,6 +42,13 @@ springdoc:
     path: /swagger-ui.html
     operationsSorter: method
 
+spring.security:
+  oauth2:
+    resourceserver:
+      jwt:
+        issuer-uri: ${OIDC_ISSUER_URI:https://identity.intra.pse.pl}
+        jwk-set-uri: ${OIDC_JWKS_URI:https://identity.intra.pse.pl/.well-known/openid-configuration/jwks}
+
 logging:
   level:
     org.gga.skills: INFO

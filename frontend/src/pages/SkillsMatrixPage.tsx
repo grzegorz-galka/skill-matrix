@@ -52,10 +52,11 @@ function FilterChips({ label, patterns, onAdd, onRemove, placeholder, hints }: F
   const [inputValue, setInputValue] = useState('');
 
   const handleAdd = (value: string) => {
-    if (value.trim()) {
-      onAdd(value.trim());
-      setInputValue('');
+    const pattern = value.trim();
+    if (pattern && !patterns.includes(pattern)) {
+      onAdd(pattern);
     }
+    setInputValue('');
   };
 
   return (
@@ -93,12 +94,6 @@ function FilterChips({ label, patterns, onAdd, onRemove, placeholder, hints }: F
           <TextField
             {...params}
             placeholder={placeholder}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && inputValue.trim()) {
-                e.preventDefault();
-                handleAdd(inputValue);
-              }
-            }}
             InputProps={{
               ...params.InputProps,
               endAdornment: (
@@ -116,11 +111,14 @@ function FilterChips({ label, patterns, onAdd, onRemove, placeholder, hints }: F
             }}
           />
         )}
-        renderOption={(props, option) => (
-          <li {...props}>
-            <Typography variant="body2">{option}</Typography>
-          </li>
-        )}
+        renderOption={(props, option) => {
+          const { key, ...optionProps } = props as React.HTMLAttributes<HTMLLIElement> & { key?: React.Key };
+          return (
+            <li key={key ?? option} {...optionProps}>
+              <Typography variant="body2">{option}</Typography>
+            </li>
+          );
+        }}
       />
     </Box>
   );
