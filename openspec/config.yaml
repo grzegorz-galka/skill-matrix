@@ -1,0 +1,98 @@
+schema: spec-driven
+
+context: |
+  Skill Matrix - an employee skills management application for PSE.
+
+  Employees are assigned skill profiles (e.g. "Java Developer", "Analyst").
+  Each profile groups skills; each skill defines its own grade scale of three
+  to five grades, each carrying a numeric level from 1 to 5. An employee picks
+  one grade per skill they possess, with supporting detail: years of
+  experience, last used date, certification, and comments from themselves and
+  a reviewer. A Skills Matrix report cross-tabulates employees against skills
+  and exports to Excel.
+
+  TECH STACK
+  - Database: PostgreSQL 16, schema owned by Flyway migrations (V001..V009),
+    Hibernate runs with ddl-auto=validate and never alters the schema
+  - Backend: Java 21, Spring Boot 3.2.1, Spring Data JPA, Bean Validation,
+    Spring Security + OAuth2 resource server, springdoc-openapi 2.3.0,
+    Maven. Tests: JUnit 5, Mockito, spring-security-test, H2 for the test profile
+  - Frontend: React 18.2, TypeScript 5.3, Vite 5, Material-UI (MUI) 7 with
+    Emotion, react-router-dom 6, axios, xlsx for spreadsheet export, ESLint.
+    No test runner is configured
+  - Deployment: Docker Compose locally, OpenShift in the target environment
+
+  ARCHITECTURE
+  - Layers: controller (HTTP + DTO mapping only) -> service (business logic,
+    authorization checks, transaction boundaries) -> repository (Spring Data
+    JPA interfaces). Entities in model/, records in dto/
+  - Authorization lives in services, never in controllers. Services throw
+    AccessDeniedException / ResourceNotFoundException / DuplicateResourceException
+    and GlobalExceptionHandler maps them to 403 / 404 / 409
+  - DTOs are Java records with Bean Validation annotations. No Lombok, no
+    MapStruct - mapping is written by hand
+  - Frontend state is plain useState/useContext plus axios in services/.
+    No Redux, Zustand, or TanStack Query. No Tailwind - styling is MUI's sx
+    prop against the shared theme
+
+  DOMAIN CONSTRAINTS THAT ARE EASY TO GET WRONG
+  - Skills and skill profiles are MANY-TO-MANY through skill_profile_skill.
+    A skill does NOT carry a profile foreign key; that was removed in V007
+  - An employee holds AT MOST ONE grade per skill. Enforced both by a unique
+    constraint on (employee_id, skill_grade_id) and by a service-level check
+    against the skill behind the grade
+  - Roles (EMPLOYEE, REVIEWER, ADMIN) are NOT carried in the OIDC token. They
+    are resolved server-side from authorization.yml by email address
+  - Reviewer permission patterns (department, profile, skill, email) are
+    combined with OR. A pattern of one kind can only widen a reviewer's reach,
+    never narrow what another kind granted
+  - Every authenticated user can READ everything, including other employees'
+    comments. Only writes are restricted
+  - There is no auto-provisioning: an authenticated person with no Employee
+    row is refused with 403
+
+  CONVENTIONS
+  - Migrations: V0NN__snake_case_description.sql, never edited once applied
+  - Only /api/employees and /api/skills return the PageResponse envelope;
+    other collection endpoints return bare arrays
+  - Endpoints carry springdoc @Tag and @Operation annotations
+  - CLAUDE.md documents the same system these specs describe. When behaviour
+    changes, the specs and CLAUDE.md are both updated alongside the code
+
+rules:
+  proposal:
+    - State which existing capability the change belongs to, or name the new one
+    - Include a "Non-goals" section
+    - Call out any change to the data model, the role model, or the public API
+      surface explicitly, since those ripple into CLAUDE.md
+  specs:
+    - Requirement bodies must contain SHALL or MUST - validation fails otherwise
+    - Every requirement needs at least one WHEN/THEN scenario
+    - Describe observable behaviour, not implementation. Name HTTP status codes
+      and error conditions rather than Java class names
+    - "Cover the refusal paths, not just the happy path: 401, 403, 404, 409, 400"
+    - Where behaviour is surprising but deliberate, write a scenario that makes
+      it explicit rather than leaving it implied
+  design:
+    - Only write a design when the change involves a real trade-off; skip it for
+      straightforward CRUD
+    - Record the alternatives considered and why they were rejected
+    - Note any new dependency and why an existing one will not do
+  tasks:
+    - Break tasks into chunks of at most two hours
+    - Include a task for the Flyway migration whenever the schema changes
+    - Include a task for updating CLAUDE.md whenever the change touches the data
+      model, endpoint list, role model, dependencies, or commands
+    - Include a task for backend unit tests covering the new authorization paths
+
+operations:
+  apply:
+    guidance:
+      - Run ./mvnw test in backend/ and npm run lint in frontend/ before finishing
+      - Never edit an already-applied Flyway migration; add a new version
+      - Keep authorization checks in the service layer
+  archive:
+    guidance:
+      - Confirm the delta specs are folded into openspec/specs/ and that
+        openspec validate --specs passes
+      - Confirm CLAUDE.md matches the archived behaviour
