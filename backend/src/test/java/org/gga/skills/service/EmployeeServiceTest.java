@@ -1,8 +1,10 @@
 package org.gga.skills.service;
 
+import org.gga.skills.dto.CurrentUser;
 import org.gga.skills.dto.EmployeeRequest;
 import org.gga.skills.dto.EmployeeResponse;
 import org.gga.skills.model.Employee;
+import org.gga.skills.model.Role;
 import org.gga.skills.repository.EmployeeRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -31,11 +33,14 @@ class EmployeeServiceTest {
 
     @Mock
     private EmployeeRepository employeeRepository;
+    @Mock
+    private CurrentUserService currentUserService;
 
     @InjectMocks
     private EmployeeService employeeService;
 
     private Employee employee;
+    private Employee adminEmployee;
     private Pageable pageable;
 
     @BeforeEach
@@ -43,6 +48,11 @@ class EmployeeServiceTest {
         employee = new Employee("John", "Doe", "john@example.com");
         employee.setId(1L);
         pageable = PageRequest.of(0, 20);
+
+        adminEmployee = new Employee("Admin", "User", "admin@example.com");
+        adminEmployee.setId(99L);
+        lenient().when(currentUserService.getCurrentUser())
+                .thenReturn(new CurrentUser(adminEmployee, Role.ADMIN));
     }
 
     // --- SEARCH TESTS ---

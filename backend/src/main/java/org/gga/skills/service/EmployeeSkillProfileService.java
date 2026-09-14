@@ -1,12 +1,15 @@
 package org.gga.skills.service;
 
+import org.gga.skills.dto.CurrentUser;
 import org.gga.skills.dto.SkillProfileResponse;
 import org.gga.skills.model.Employee;
 import org.gga.skills.model.EmployeeSkillProfile;
+import org.gga.skills.model.Role;
 import org.gga.skills.model.SkillProfile;
 import org.gga.skills.repository.EmployeeRepository;
 import org.gga.skills.repository.EmployeeSkillProfileRepository;
 import org.gga.skills.repository.SkillProfileRepository;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,13 +22,23 @@ public class EmployeeSkillProfileService {
     private final EmployeeSkillProfileRepository employeeSkillProfileRepository;
     private final EmployeeRepository employeeRepository;
     private final SkillProfileRepository skillProfileRepository;
+    private final CurrentUserService currentUserService;
 
     public EmployeeSkillProfileService(EmployeeSkillProfileRepository employeeSkillProfileRepository,
                                        EmployeeRepository employeeRepository,
-                                       SkillProfileRepository skillProfileRepository) {
+                                       SkillProfileRepository skillProfileRepository,
+                                       CurrentUserService currentUserService) {
         this.employeeSkillProfileRepository = employeeSkillProfileRepository;
         this.employeeRepository = employeeRepository;
         this.skillProfileRepository = skillProfileRepository;
+        this.currentUserService = currentUserService;
+    }
+
+    private void requireAdmin() {
+        CurrentUser currentUser = currentUserService.getCurrentUser();
+        if (currentUser.role() != Role.ADMIN) {
+            throw new AccessDeniedException("Only admins can manage employee skill profile assignments");
+        }
     }
 
     public List<SkillProfileResponse> getSkillProfilesByEmployeeId(Long employeeId) {
@@ -39,6 +52,7 @@ public class EmployeeSkillProfileService {
 
     @Transactional
     public void assignSkillProfileToEmployee(Long employeeId, Long skillProfileId) {
+        requireAdmin();
         if (employeeSkillProfileRepository.existsByEmployeeIdAndSkillProfileId(employeeId, skillProfileId)) {
             throw new DuplicateResourceException("Employee already has this skill profile assigned");
         }
@@ -55,6 +69,7 @@ public class EmployeeSkillProfileService {
 
     @Transactional
     public void removeSkillProfileFromEmployee(Long employeeId, Long skillProfileId) {
+        requireAdmin();
         if (!employeeSkillProfileRepository.existsByEmployeeIdAndSkillProfileId(employeeId, skillProfileId)) {
             throw new ResourceNotFoundException("Employee does not have this skill profile assigned");
         }

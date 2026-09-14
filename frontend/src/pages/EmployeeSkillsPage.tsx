@@ -30,8 +30,9 @@ import { employeeSkillGradeService } from '../services/employeeSkillGradeService
 import { employeeService } from '../services/employeeService';
 import { Loading } from '../components/Loading';
 import { ErrorMessage } from '../components/ErrorMessage';
-import { Skill, SkillGrade, Employee, SkillProfile } from '../types';
+import { Skill, SkillGrade, Employee, SkillProfile, EmployeeSkillGrade, EmployeeSkillGradeRequest } from '../types';
 import { getLevelColor, getLevelTextColor } from '../utils/levelColors';
+import { getApiErrorMessage } from '../utils/apiError';
 
 interface SkillWithGrades extends Skill {
   grades: SkillGrade[];
@@ -41,6 +42,7 @@ interface PossessedSkill {
   skill: Skill;
   selectedGradeId: number | null;
   employeeSkillGradeId?: number;
+  existing?: EmployeeSkillGrade;
 }
 
 export function EmployeeSkillsPage() {
@@ -128,6 +130,7 @@ export function EmployeeSkillsPage() {
             },
             selectedGradeId: esg.skillGradeId,
             employeeSkillGradeId: esg.id,
+            existing: esg,
           };
         });
 
@@ -225,13 +228,24 @@ export function EmployeeSkillsPage() {
       for (const ps of possessedSkills) {
         if (!ps.selectedGradeId) continue;
 
-        const request = {
+        // An update replaces the whole record, so resend the fields this screen
+        // does not edit - otherwise saving one skill blanks the others' metadata.
+        const existing = ps.existing;
+        const request: EmployeeSkillGradeRequest = {
           employeeId: selectedEmployee.id,
           skillGradeId: ps.selectedGradeId,
-          certified: false,
+          yearsOfExperience: existing?.yearsOfExperience,
+          lastUsedDate: existing?.lastUsedDate,
+          certified: existing?.certified ?? false,
+          employeeComment: existing?.employeeComment,
+          reviewedByEmployeeId: existing?.reviewedByEmployeeId,
+          reviewerComment: existing?.reviewerComment,
         };
 
         if (ps.employeeSkillGradeId) {
+          if (existing && existing.skillGradeId === ps.selectedGradeId) {
+            continue;
+          }
           await employeeSkillGradeService.update(ps.employeeSkillGradeId, request);
         } else {
           await employeeSkillGradeService.create(request);
@@ -256,13 +270,14 @@ export function EmployeeSkillsPage() {
           },
           selectedGradeId: esg.skillGradeId,
           employeeSkillGradeId: esg.id,
+          existing: esg,
         };
       });
       setPossessedSkills(possessed);
       setOriginalPossessedSkills(possessed);
 
     } catch (err) {
-      setSnackbar({ open: true, message: 'Failed to save changes', severity: 'error' });
+      setSnackbar({ open: true, message: getApiErrorMessage(err, 'Failed to save changes'), severity: 'error' });
       console.error(err);
     } finally {
       setLoading(false);

@@ -1,0 +1,8 @@
+admins:
+  - admin@company.com
+
+reviewers:
+  - email: reviewer@company.com
+    permissions:
+      department.patterns: ["CKI-P", "CKI-IT*"]
+      profile.patterns: ["Analyst"]

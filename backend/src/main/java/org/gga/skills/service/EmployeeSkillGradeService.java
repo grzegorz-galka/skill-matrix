@@ -10,6 +10,7 @@ import org.gga.skills.repository.EmployeeSkillGradeRepository;
 import org.gga.skills.repository.SkillGradeRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,13 +23,43 @@ public class EmployeeSkillGradeService {
     private final EmployeeSkillGradeRepository employeeSkillGradeRepository;
     private final EmployeeRepository employeeRepository;
     private final SkillGradeRepository skillGradeRepository;
+    private final CurrentUserService currentUserService;
+    private final AuthorizationService authorizationService;
 
     public EmployeeSkillGradeService(EmployeeSkillGradeRepository employeeSkillGradeRepository,
                                       EmployeeRepository employeeRepository,
-                                      SkillGradeRepository skillGradeRepository) {
+                                      SkillGradeRepository skillGradeRepository,
+                                      CurrentUserService currentUserService,
+                                      AuthorizationService authorizationService) {
         this.employeeSkillGradeRepository = employeeSkillGradeRepository;
         this.employeeRepository = employeeRepository;
         this.skillGradeRepository = skillGradeRepository;
+        this.currentUserService = currentUserService;
+        this.authorizationService = authorizationService;
+    }
+
+    /**
+     * An employee holds one grade per skill, so a second grade of the same skill
+     * is a conflict rather than an addition.
+     */
+    private void checkSingleGradePerSkill(Long employeeId, SkillGrade skillGrade, Long excludedId) {
+        employeeSkillGradeRepository
+                .findByEmployeeIdAndSkillId(employeeId, skillGrade.getSkill().getId())
+                .stream()
+                .filter(other -> excludedId == null || !other.getId().equals(excludedId))
+                .findFirst()
+                .ifPresent(other -> {
+                    throw new DuplicateResourceException("Employee id: " + employeeId +
+                            " already has grade '" + other.getSkillGrade().getCode() + "' for skill '" +
+                            skillGrade.getSkill().getName() + "'. Update that grade instead of adding another.");
+                });
+    }
+
+    private void checkSkillGradeEditPermission(Long targetEmployeeId, Long skillGradeId) {
+        String email = currentUserService.getCurrentEmail();
+        if (!authorizationService.canEditEmployeeSkillGrade(email, targetEmployeeId, skillGradeId)) {
+            throw new AccessDeniedException("You do not have permission to edit this employee's skill grades");
+        }
     }
 
     public Page<EmployeeSkillGradeResponse> getAllEmployeeSkillGrades(Pageable pageable) {
@@ -62,6 +93,8 @@ public class EmployeeSkillGradeService {
 
     @Transactional
     public EmployeeSkillGradeResponse createEmployeeSkillGrade(EmployeeSkillGradeRequest request) {
+        checkSkillGradeEditPermission(request.employeeId(), request.skillGradeId());
+
         if (employeeSkillGradeRepository.existsByEmployeeIdAndSkillGradeId(
                 request.employeeId(), request.skillGradeId())) {
             throw new DuplicateResourceException("Employee skill grade already exists for employee id: " +
@@ -73,6 +106,8 @@ public class EmployeeSkillGradeService {
 
         SkillGrade skillGrade = skillGradeRepository.findById(request.skillGradeId())
                 .orElseThrow(() -> new ResourceNotFoundException("Skill grade not found with id: " + request.skillGradeId()));
+
+        checkSingleGradePerSkill(request.employeeId(), skillGrade, null);
 
         EmployeeSkillGrade esg = new EmployeeSkillGrade(employee, skillGrade);
         esg.setYearsOfExperience(request.yearsOfExperience());
@@ -93,6 +128,8 @@ public class EmployeeSkillGradeService {
 
     @Transactional
     public EmployeeSkillGradeResponse updateEmployeeSkillGrade(Long id, EmployeeSkillGradeRequest request) {
+        checkSkillGradeEditPermission(request.employeeId(), request.skillGradeId());
+
         EmployeeSkillGrade esg = employeeSkillGradeRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Employee skill grade not found with id: " + id));
 
@@ -111,6 +148,8 @@ public class EmployeeSkillGradeService {
 
         SkillGrade skillGrade = skillGradeRepository.findById(request.skillGradeId())
                 .orElseThrow(() -> new ResourceNotFoundException("Skill grade not found with id: " + request.skillGradeId()));
+
+        checkSingleGradePerSkill(request.employeeId(), skillGrade, id);
 
         esg.setEmployee(employee);
         esg.setSkillGrade(skillGrade);
@@ -134,9 +173,9 @@ public class EmployeeSkillGradeService {
 
     @Transactional
     public void deleteEmployeeSkillGrade(Long id) {
-        if (!employeeSkillGradeRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Employee skill grade not found with id: " + id);
-        }
+        EmployeeSkillGrade esg = employeeSkillGradeRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Employee skill grade not found with id: " + id));
+        checkSkillGradeEditPermission(esg.getEmployee().getId(), esg.getSkillGrade().getId());
         employeeSkillGradeRepository.deleteById(id);
     }
 }

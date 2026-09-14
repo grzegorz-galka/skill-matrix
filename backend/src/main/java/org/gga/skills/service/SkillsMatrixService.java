@@ -14,6 +14,8 @@ import org.gga.skills.repository.SkillRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.gga.skills.util.GlobMatcher;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -203,11 +205,7 @@ public class SkillsMatrixService {
     }
 
     private boolean matchesWildcard(String value, String pattern) {
-        String regex = pattern
-                .replace(".", "\\.")
-                .replace("*", ".*")
-                .replace("?", ".");
-        return value.matches(regex);
+        return GlobMatcher.matches(value, pattern);
     }
 
     private MatrixEmployee toMatrixEmployee(Employee e) {

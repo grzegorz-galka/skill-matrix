@@ -1,11 +1,9 @@
 package org.gga.skills.service;
 
+import org.gga.skills.dto.CurrentUser;
 import org.gga.skills.dto.SkillRequest;
 import org.gga.skills.dto.SkillResponse;
-import org.gga.skills.model.Skill;
-import org.gga.skills.model.SkillGrade;
-import org.gga.skills.model.SkillProfile;
-import org.gga.skills.model.SkillProfileSkill;
+import org.gga.skills.model.*;
 import org.gga.skills.repository.SkillGradeRepository;
 import org.gga.skills.repository.SkillProfileSkillRepository;
 import org.gga.skills.repository.SkillRepository;
@@ -32,6 +30,8 @@ class SkillServiceTest {
     private SkillProfileSkillRepository skillProfileSkillRepository;
     @Mock
     private SkillGradeRepository skillGradeRepository;
+    @Mock
+    private CurrentUserService currentUserService;
 
     @InjectMocks
     private SkillService skillService;
@@ -53,6 +53,11 @@ class SkillServiceTest {
         grade.setId(100L);
         grade.setCode("INTERMEDIATE");
         grade.setSkill(skill);
+
+        Employee adminEmployee = new Employee("Admin", "User", "admin@example.com");
+        adminEmployee.setId(99L);
+        lenient().when(currentUserService.getCurrentUser())
+                .thenReturn(new CurrentUser(adminEmployee, Role.ADMIN));
     }
 
     // --- GET BY ID - AGGREGATION TESTS ---

@@ -1,7 +1,9 @@
 package org.gga.skills.service;
 
+import org.gga.skills.dto.CurrentUser;
 import org.gga.skills.dto.SkillRequest;
 import org.gga.skills.dto.SkillResponse;
+import org.gga.skills.model.Role;
 import org.gga.skills.model.SkillProfile;
 import org.gga.skills.model.Skill;
 import org.gga.skills.model.SkillGrade;
@@ -10,6 +12,7 @@ import org.gga.skills.repository.SkillGradeRepository;
 import org.gga.skills.repository.SkillRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,13 +27,16 @@ public class SkillService {
     private final SkillRepository skillRepository;
     private final SkillProfileSkillRepository skillProfileSkillRepository;
     private final SkillGradeRepository skillGradeRepository;
+    private final CurrentUserService currentUserService;
 
     public SkillService(SkillRepository skillRepository,
                        SkillProfileSkillRepository skillProfileSkillRepository,
-                       SkillGradeRepository skillGradeRepository) {
+                       SkillGradeRepository skillGradeRepository,
+                       CurrentUserService currentUserService) {
         this.skillRepository = skillRepository;
         this.skillProfileSkillRepository = skillProfileSkillRepository;
         this.skillGradeRepository = skillGradeRepository;
+        this.currentUserService = currentUserService;
     }
 
     public List<SkillResponse> getAllSkills() {
@@ -110,8 +116,16 @@ public class SkillService {
         return SkillResponse.fromEntity(skill, skillProfiles, grades);
     }
 
+    private void requireAdmin() {
+        CurrentUser currentUser = currentUserService.getCurrentUser();
+        if (currentUser.role() != Role.ADMIN) {
+            throw new AccessDeniedException("Only admins can manage skills");
+        }
+    }
+
     @Transactional
     public SkillResponse createSkill(SkillRequest request) {
+        requireAdmin();
         if (skillRepository.existsByName(request.name())) {
             throw new DuplicateResourceException("Skill with name " + request.name() + " already exists");
         }
@@ -127,6 +141,7 @@ public class SkillService {
 
     @Transactional
     public SkillResponse updateSkill(Long id, SkillRequest request) {
+        requireAdmin();
         Skill skill = skillRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Skill not found with id: " + id));
 
@@ -153,6 +168,7 @@ public class SkillService {
 
     @Transactional
     public void deleteSkill(Long id) {
+        requireAdmin();
         if (!skillRepository.existsById(id)) {
             throw new ResourceNotFoundException("Skill not found with id: " + id);
         }

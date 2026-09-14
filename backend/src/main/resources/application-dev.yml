@@ -1,0 +1,15 @@
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: skill-matrix-dev
+
+app:
+  security:
+    dev-jwt-secret: "dev-only-secret-key-that-is-at-least-256-bits-long-for-hs256-signing"
+
+logging:
+  level:
+    org.gga.skills: DEBUG
+    org.springframework.security: DEBUG

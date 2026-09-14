@@ -1,11 +1,14 @@
 package org.gga.skills.service;
 
+import org.gga.skills.dto.CurrentUser;
 import org.gga.skills.dto.EmployeeRequest;
 import org.gga.skills.dto.EmployeeResponse;
 import org.gga.skills.model.Employee;
+import org.gga.skills.model.Role;
 import org.gga.skills.repository.EmployeeRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,9 +17,12 @@ import org.springframework.transaction.annotation.Transactional;
 public class EmployeeService {
 
     private final EmployeeRepository employeeRepository;
+    private final CurrentUserService currentUserService;
 
-    public EmployeeService(EmployeeRepository employeeRepository) {
+    public EmployeeService(EmployeeRepository employeeRepository,
+                           CurrentUserService currentUserService) {
         this.employeeRepository = employeeRepository;
+        this.currentUserService = currentUserService;
     }
 
     public Page<EmployeeResponse> getAllEmployees(Pageable pageable) {
@@ -58,6 +64,11 @@ public class EmployeeService {
 
     @Transactional
     public EmployeeResponse createEmployee(EmployeeRequest request) {
+        CurrentUser currentUser = currentUserService.getCurrentUser();
+        if (currentUser.role() != Role.ADMIN) {
+            throw new AccessDeniedException("Only admins can create employees");
+        }
+
         if (employeeRepository.existsByEmail(request.email())) {
             throw new DuplicateResourceException("Employee with email " + request.email() + " already exists");
         }
@@ -76,6 +87,11 @@ public class EmployeeService {
 
     @Transactional
     public EmployeeResponse updateEmployee(Long id, EmployeeRequest request) {
+        CurrentUser currentUser = currentUserService.getCurrentUser();
+        if (currentUser.role() != Role.ADMIN && !currentUser.employee().getId().equals(id)) {
+            throw new AccessDeniedException("Cannot edit another employee's record");
+        }
+
         Employee employee = employeeRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Employee not found with id: " + id));
 
@@ -96,6 +112,10 @@ public class EmployeeService {
 
     @Transactional
     public void deleteEmployee(Long id) {
+        CurrentUser currentUser = currentUserService.getCurrentUser();
+        if (currentUser.role() != Role.ADMIN) {
+            throw new AccessDeniedException("Only admins can delete employees");
+        }
         if (!employeeRepository.existsById(id)) {
             throw new ResourceNotFoundException("Employee not found with id: " + id);
         }

@@ -1,7 +1,9 @@
 package org.gga.skills.service;
 
+import org.gga.skills.dto.CurrentUser;
 import org.gga.skills.model.Employee;
 import org.gga.skills.model.EmployeeSkillProfile;
+import org.gga.skills.model.Role;
 import org.gga.skills.model.SkillProfile;
 import org.gga.skills.repository.EmployeeRepository;
 import org.gga.skills.repository.EmployeeSkillProfileRepository;
@@ -28,6 +30,8 @@ class EmployeeSkillProfileServiceTest {
     private EmployeeRepository employeeRepository;
     @Mock
     private SkillProfileRepository skillProfileRepository;
+    @Mock
+    private CurrentUserService currentUserService;
 
     @InjectMocks
     private EmployeeSkillProfileService service;
@@ -41,6 +45,11 @@ class EmployeeSkillProfileServiceTest {
         employee.setId(1L);
         skillProfile = new SkillProfile("Java Developer", "Java skills");
         skillProfile.setId(10L);
+
+        Employee adminEmployee = new Employee("Admin", "User", "admin@example.com");
+        adminEmployee.setId(99L);
+        lenient().when(currentUserService.getCurrentUser())
+                .thenReturn(new CurrentUser(adminEmployee, Role.ADMIN));
     }
 
     // --- ASSIGN TESTS ---
