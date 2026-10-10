@@ -5,7 +5,7 @@ import { skillService } from '../services/skillService';
 export function useSkills(page = 0, size = 20) {
   const [skills, setSkills] = useState<Page<Skill> | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<unknown>(null);
 
   const fetchSkills = async () => {
     try {
@@ -14,7 +14,7 @@ export function useSkills(page = 0, size = 20) {
       setSkills(data);
       setError(null);
     } catch (err) {
-      setError('Failed to fetch skills');
+      setError(err);
       console.error(err);
     } finally {
       setLoading(false);
@@ -31,7 +31,7 @@ export function useSkills(page = 0, size = 20) {
 export function useSkill(id: number | null) {
   const [skill, setSkill] = useState<Skill | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<unknown>(null);
 
   const fetchSkill = async () => {
     if (id === null) {
@@ -46,7 +46,7 @@ export function useSkill(id: number | null) {
       setSkill(data);
       setError(null);
     } catch (err) {
-      setError('Failed to fetch skill');
+      setError(err);
       console.error(err);
     } finally {
       setLoading(false);

@@ -28,11 +28,13 @@ import { SkillEditModal } from '../components/SkillEditModal';
 import { Skill } from '../types';
 import { skillService } from '../services/skillService';
 import { getLevelColor, getLevelTextColor } from '../utils/levelColors';
-import { getApiErrorMessage } from '../utils/apiError';
+import { formatApiError } from '../utils/apiError';
+import { useTranslation } from '../i18n/LanguageContext';
 import { useAuth } from '../auth/AuthContext';
 
 export function SkillsPage() {
   const { isAdmin } = useAuth();
+  const { t } = useTranslation();
   const [page] = useState(0);
   const { skills, loading, error, refetch } = useSkills(page, 20);
   const { skillProfiles } = useSkillProfiles();
@@ -50,12 +52,12 @@ export function SkillsPage() {
   };
 
   const handleDelete = async (skill: Skill) => {
-    if (confirm(`Delete skill ${skill.name}?`)) {
+    if (confirm(t.skills.deleteConfirm(skill.name))) {
       try {
         await skillService.delete(skill.id);
         refetch();
       } catch (err) {
-        alert(getApiErrorMessage(err, 'Failed to delete skill'));
+        alert(formatApiError(err, t, t.skills.deleteFailed));
       }
     }
   };
@@ -70,7 +72,7 @@ export function SkillsPage() {
   };
 
   if (loading) return <Loading />;
-  if (error) return <ErrorMessage message={error} />;
+  if (error) return <ErrorMessage message={formatApiError(error, t, t.skills.loadFailed)} />;
 
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: '#f8fafc' }}>
@@ -83,10 +85,10 @@ export function SkillsPage() {
             </Avatar>
             <Box>
               <Typography variant="h4" component="h1" sx={{ fontWeight: 'bold', mb: 0.5 }}>
-                Skills
+                {t.skills.title}
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                Manage individual skills and their associated skill profiles
+                {t.skills.subtitle}
               </Typography>
             </Box>
           </Box>
@@ -103,7 +105,7 @@ export function SkillsPage() {
                 py: 1,
               }}
             >
-              Add Skill
+              {t.skills.add}
             </Button>
           )}
         </Box>
@@ -114,11 +116,11 @@ export function SkillsPage() {
             <Table>
               <TableHead>
                 <TableRow sx={{ bgcolor: '#f9fafb' }}>
-                  <TableCell sx={{ fontWeight: 'bold', py: 2 }}>Name</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', py: 2 }}>Skill Profiles</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', py: 2 }}>Description</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', py: 2 }}>Grades</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', py: 2, textAlign: 'right' }}>Actions</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', py: 2 }}>{t.common.name}</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', py: 2 }}>{t.skills.skillProfiles}</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', py: 2 }}>{t.common.description}</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', py: 2 }}>{t.skills.grades}</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', py: 2, textAlign: 'right' }}>{t.common.actions}</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -153,7 +155,7 @@ export function SkillsPage() {
                           ))
                         ) : (
                           <Typography variant="body2" color="text.secondary">
-                            None
+                            {t.common.none}
                           </Typography>
                         )}
                       </Stack>
@@ -195,6 +197,7 @@ export function SkillsPage() {
                           <>
                             <IconButton
                               size="small"
+                              aria-label={t.common.edit}
                               onClick={() => handleEdit(skill)}
                               sx={{ color: '#2563eb' }}
                             >
@@ -202,6 +205,7 @@ export function SkillsPage() {
                             </IconButton>
                             <IconButton
                               size="small"
+                              aria-label={t.common.delete}
                               onClick={() => handleDelete(skill)}
                               sx={{ color: '#ef4444' }}
                             >
@@ -221,7 +225,7 @@ export function SkillsPage() {
           {skills && (
             <Box sx={{ p: 2, borderTop: '1px solid #e5e7eb', display: 'flex', justifyContent: 'center' }}>
               <Typography variant="body2" color="text.secondary">
-                Page {skills.page + 1} of {skills.totalPages} (Total: {skills.totalElements} skills)
+                {t.skills.paging(skills.page + 1, skills.totalPages, skills.totalElements)}
               </Typography>
             </Box>
           )}

@@ -1,6 +1,8 @@
-import { createTheme } from '@mui/material/styles';
+import { createTheme, ThemeOptions } from '@mui/material/styles';
+import { enUS, plPL } from '@mui/material/locale';
+import type { Language } from '../i18n/LanguageContext';
 
-export const theme = createTheme({
+const themeOptions: ThemeOptions = {
   palette: {
     primary: {
       main: '#1976d2', // Material Blue 700
@@ -70,4 +72,8 @@ export const theme = createTheme({
       },
     },
   },
-});
+};
+
+export function buildTheme(language: Language) {
+  return createTheme(themeOptions, language === 'pl' ? plPL : enUS);
+}

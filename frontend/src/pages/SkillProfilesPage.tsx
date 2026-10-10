@@ -6,11 +6,13 @@ import { Loading } from '../components/Loading';
 import { ErrorMessage } from '../components/ErrorMessage';
 import { SkillProfile, SkillProfileRequest } from '../types';
 import { skillProfileService } from '../services/skillProfileService';
-import { getApiErrorMessage } from '../utils/apiError';
+import { formatApiError } from '../utils/apiError';
+import { useTranslation } from '../i18n/LanguageContext';
 import { useAuth } from '../auth/AuthContext';
 
 export function SkillProfilesPage() {
   const { isAdmin } = useAuth();
+  const { t } = useTranslation();
   const { skillProfiles, loading, error, refetch } = useSkillProfiles();
   const [showForm, setShowForm] = useState(false);
   const [editingProfile, setEditingProfile] = useState<SkillProfile | null>(null);
@@ -35,12 +37,12 @@ export function SkillProfilesPage() {
   };
 
   const handleDelete = async (profile: SkillProfile) => {
-    if (confirm(`Delete skill profile ${profile.name}?`)) {
+    if (confirm(t.skillProfiles.deleteConfirm(profile.name))) {
       try {
         await skillProfileService.delete(profile.id);
         refetch();
       } catch (err) {
-        alert(getApiErrorMessage(err, 'Failed to delete skill profile'));
+        alert(formatApiError(err, t, t.skillProfiles.deleteFailed));
       }
     }
   };
@@ -56,27 +58,27 @@ export function SkillProfilesPage() {
       setShowForm(false);
       refetch();
     } catch (err) {
-      alert(getApiErrorMessage(err, 'Failed to save skill profile'));
+      alert(formatApiError(err, t, t.skillProfiles.saveFailed));
     }
   };
 
   const columns = [
-    { key: 'name', header: 'Name' },
-    { key: 'description', header: 'Description' },
+    { key: 'name', header: t.common.name },
+    { key: 'description', header: t.common.description },
   ];
 
   if (loading) return <Loading />;
-  if (error) return <ErrorMessage message={error} />;
+  if (error) return <ErrorMessage message={formatApiError(error, t, t.skillProfiles.loadFailed)} />;
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h4" component="h1">
-          Skill Profiles
+          {t.skillProfiles.title}
         </Typography>
         {isAdmin && (
           <Button variant="contained" color="primary" onClick={handleCreate}>
-            Add Skill Profile
+            {t.skillProfiles.add}
           </Button>
         )}
       </Box>
@@ -84,12 +86,12 @@ export function SkillProfilesPage() {
       {showForm && (
         <Paper sx={{ p: 3, mb: 3 }}>
           <Typography variant="h5" component="h2" gutterBottom>
-            {editingProfile ? 'Edit Skill Profile' : 'New Skill Profile'}
+            {editingProfile ? t.skillProfiles.editTitle : t.skillProfiles.newTitle}
           </Typography>
           <form onSubmit={handleSubmit}>
             <Stack spacing={2}>
               <TextField
-                label="Name"
+                label={t.common.name}
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 required
@@ -98,7 +100,7 @@ export function SkillProfilesPage() {
                 size="small"
               />
               <TextField
-                label="Description"
+                label={t.common.description}
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 multiline
@@ -108,10 +110,10 @@ export function SkillProfilesPage() {
               />
               <Stack direction="row" spacing={2} sx={{ mt: 2 }}>
                 <Button type="submit" variant="contained" color="success">
-                  Save
+                  {t.common.save}
                 </Button>
                 <Button variant="outlined" color="secondary" onClick={() => setShowForm(false)}>
-                  Cancel
+                  {t.common.cancel}
                 </Button>
               </Stack>
             </Stack>

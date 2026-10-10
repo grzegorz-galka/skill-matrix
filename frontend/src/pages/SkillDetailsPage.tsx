@@ -24,23 +24,25 @@ import { ErrorMessage } from '../components/ErrorMessage';
 import { SkillRequest, SkillGrade, SkillGradeRequest } from '../types';
 import { skillService } from '../services/skillService';
 import { skillGradeService } from '../services/skillGradeService';
-import { LEVEL_LABELS } from '../utils/levelColors';
-import { getApiErrorMessage } from '../utils/apiError';
+import { getLevelLabel } from '../utils/levelColors';
+import { formatApiError } from '../utils/apiError';
+import { useTranslation } from '../i18n/LanguageContext';
 import { useAuth } from '../auth/AuthContext';
 
 export function SkillDetailsPage() {
   const { isAdmin } = useAuth();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const skillId = Number(id);
 
   // Validate skill ID
   if (isNaN(skillId)) {
     return (
       <Container maxWidth="lg" sx={{ py: 4 }}>
-        <ErrorMessage message="Invalid skill ID" />
+        <ErrorMessage message={t.skillDetails.invalidId} />
         <Button variant="outlined" onClick={() => navigate('/skills')} sx={{ mt: 2 }}>
-          Back to Skills
+          {t.skillDetails.backToSkills}
         </Button>
       </Container>
     );
@@ -103,9 +105,9 @@ export function SkillDetailsPage() {
       setSkillSaving(true);
       await skillService.update(skillId, skillFormData);
       setSkillDirty(false);
-      alert('Skill updated successfully');
+      alert(t.skillDetails.updated);
     } catch (err) {
-      alert(getApiErrorMessage(err, 'Failed to update skill'));
+      alert(formatApiError(err, t, t.skillDetails.updateFailed));
       console.error(err);
     } finally {
       setSkillSaving(false);
@@ -128,18 +130,18 @@ export function SkillDetailsPage() {
       await skillService.addSkillProfile(skillId, skillProfileId);
       refetchSkill();
     } catch (err) {
-      alert(getApiErrorMessage(err, 'Failed to add skill profile'));
+      alert(formatApiError(err, t, t.skillDetails.addProfileFailed));
       console.error(err);
     }
   };
 
   const handleRemoveSkillProfile = async (skillProfileId: number) => {
-    if (confirm('Remove this skill profile from the skill?')) {
+    if (confirm(t.skillDetails.removeProfileConfirm)) {
       try {
         await skillService.removeSkillProfile(skillId, skillProfileId);
         refetchSkill();
       } catch (err) {
-        alert(getApiErrorMessage(err, 'Failed to remove skill profile'));
+        alert(formatApiError(err, t, t.skillDetails.removeProfileFailed));
         console.error(err);
       }
     }
@@ -147,7 +149,7 @@ export function SkillDetailsPage() {
 
   const handleBack = () => {
     if (skillDirty) {
-      if (confirm('You have unsaved changes. Are you sure you want to leave?')) {
+      if (confirm(t.skillDetails.unsavedConfirm)) {
         navigate('/skills');
       }
     } else {
@@ -189,18 +191,18 @@ export function SkillDetailsPage() {
       setShowGradeForm(false);
       refetchGrades();
     } catch (err) {
-      alert(getApiErrorMessage(err, 'Failed to save skill grade'));
+      alert(formatApiError(err, t, t.skillDetails.saveGradeFailed));
       console.error(err);
     }
   };
 
   const handleGradeDelete = async (grade: SkillGrade) => {
-    if (confirm(`Delete grade "${grade.code}"?`)) {
+    if (confirm(t.skillDetails.deleteGradeConfirm(grade.code))) {
       try {
         await skillGradeService.delete(grade.id);
         refetchGrades();
       } catch (err) {
-        alert(getApiErrorMessage(err, 'Failed to delete skill grade'));
+        alert(formatApiError(err, t, t.skillDetails.deleteGradeFailed));
         console.error(err);
       }
     }
@@ -217,22 +219,24 @@ export function SkillDetailsPage() {
   if (skillError || !skill) {
     return (
       <Container maxWidth="lg" sx={{ py: 4 }}>
-        <ErrorMessage message={skillError || 'Skill not found'} />
+        <ErrorMessage
+          message={skillError ? formatApiError(skillError, t, t.skillDetails.loadFailed) : t.skillDetails.notFound}
+        />
         <Button variant="outlined" onClick={() => navigate('/skills')} sx={{ mt: 2 }}>
-          Back to Skills
+          {t.skillDetails.backToSkills}
         </Button>
       </Container>
     );
   }
 
   const gradeColumns = [
-    { key: 'code', header: 'Code' },
+    { key: 'code', header: t.skillDetails.code },
     {
       key: 'level',
-      header: 'Level',
-      render: (grade: SkillGrade) => `L${grade.level}: ${LEVEL_LABELS[grade.level] ?? ''}`,
+      header: t.skillDetails.level,
+      render: (grade: SkillGrade) => `L${grade.level}: ${getLevelLabel(grade.level, t)}`,
     },
-    { key: 'description', header: 'Description' },
+    { key: 'description', header: t.common.description },
   ];
 
   return (
@@ -244,21 +248,21 @@ export function SkillDetailsPage() {
           startIcon={<ArrowBackIcon />}
           onClick={handleBack}
         >
-          Back
+          {t.common.back}
         </Button>
         <Typography variant="h4" component="h1">
-          Skill: {skill.name}
+          {t.skillDetails.title(skill.name)}
         </Typography>
       </Box>
 
       {/* Skill Information Section */}
       <Paper sx={{ p: 3, mb: 5 }}>
         <Typography variant="h5" component="h2" gutterBottom>
-          Skill Information
+          {t.skillDetails.information}
         </Typography>
         <Stack spacing={2}>
           <TextField
-            label="Name"
+            label={t.common.name}
             value={skillFormData.name}
             onChange={(e) => handleSkillChange('name', e.target.value)}
             disabled={skillSaving}
@@ -271,7 +275,7 @@ export function SkillDetailsPage() {
           {/* Skill Profiles Display */}
           <Box>
             <Typography variant="subtitle2" gutterBottom>
-              Assigned Skill Profiles:
+              {t.common.assignedSkillProfiles}:
             </Typography>
             {skill.skillProfiles.length > 0 ? (
               <Stack direction="row" spacing={1} sx={{ mt: 1, flexWrap: 'wrap', gap: 1 }}>
@@ -287,17 +291,17 @@ export function SkillDetailsPage() {
               </Stack>
             ) : (
               <Typography variant="body2" color="text.secondary">
-                No skill profiles assigned
+                {t.common.noSkillProfilesAssigned}
               </Typography>
             )}
           </Box>
 
           {/* Add Skill Profile Dropdown */}
           <FormControl size="small" sx={{ minWidth: 250 }}>
-            <InputLabel>Add Skill Profile</InputLabel>
+            <InputLabel>{t.common.addSkillProfile}</InputLabel>
             <Select
               value=""
-              label="Add Skill Profile"
+              label={t.common.addSkillProfile}
               onChange={(e) => handleAddSkillProfile(Number(e.target.value))}
             >
               {skillProfiles
@@ -311,7 +315,7 @@ export function SkillDetailsPage() {
           </FormControl>
 
           <TextField
-            label="Description"
+            label={t.common.description}
             value={skillFormData.description}
             onChange={(e) => handleSkillChange('description', e.target.value)}
             disabled={skillSaving}
@@ -327,7 +331,7 @@ export function SkillDetailsPage() {
               onClick={handleSkillSave}
               disabled={!skillDirty || skillSaving}
             >
-              {skillSaving ? 'Saving...' : 'Save Changes'}
+              {skillSaving ? t.common.saving : t.common.saveChanges}
             </Button>
             <Button
               variant="outlined"
@@ -335,7 +339,7 @@ export function SkillDetailsPage() {
               onClick={handleSkillCancel}
               disabled={!skillDirty || skillSaving}
             >
-              Cancel
+              {t.common.cancel}
             </Button>
           </Stack>
         </Stack>
@@ -345,11 +349,11 @@ export function SkillDetailsPage() {
       <Box>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
           <Typography variant="h5" component="h2">
-            Skill Grades
+            {t.skillDetails.grades}
           </Typography>
           {isAdmin && (
             <Button variant="contained" color="primary" onClick={handleGradeCreate}>
-              Add Grade
+              {t.skillDetails.addGrade}
             </Button>
           )}
         </Box>
@@ -358,53 +362,53 @@ export function SkillDetailsPage() {
         {showGradeForm && (
           <Paper sx={{ p: 3, mb: 3 }}>
             <Typography variant="h6" component="h3" gutterBottom>
-              {editingGrade ? 'Edit Grade' : 'New Grade'}
+              {editingGrade ? t.skillDetails.editGrade : t.skillDetails.newGrade}
             </Typography>
             <form onSubmit={handleGradeSubmit}>
               <Stack spacing={2}>
                 <TextField
-                  label="Code"
+                  label={t.skillDetails.code}
                   value={gradeFormData.code}
                   onChange={(e) => setGradeFormData({ ...gradeFormData, code: e.target.value })}
                   required
-                  placeholder="e.g., beginner, intermediate, advanced, expert"
+                  placeholder={t.skillDetails.codePlaceholder}
                   fullWidth
                   variant="outlined"
                   size="small"
                 />
                 <TextField
                   select
-                  label="Level"
+                  label={t.skillDetails.level}
                   value={gradeFormData.level ?? 1}
                   onChange={(e) => setGradeFormData({ ...gradeFormData, level: Number(e.target.value) })}
                   required
-                  helperText="Ranks this grade against the skill's other grades"
+                  helperText={t.skillDetails.levelHelper}
                   fullWidth
                   variant="outlined"
                   size="small"
                 >
                   {[1, 2, 3, 4, 5].map((level) => (
                     <MenuItem key={level} value={level}>
-                      {`L${level}: ${LEVEL_LABELS[level]}`}
+                      {`L${level}: ${getLevelLabel(level, t)}`}
                     </MenuItem>
                   ))}
                 </TextField>
                 <TextField
-                  label="Description"
+                  label={t.common.description}
                   value={gradeFormData.description}
                   onChange={(e) => setGradeFormData({ ...gradeFormData, description: e.target.value })}
                   multiline
                   rows={3}
-                  placeholder="Describe what this grade level means"
+                  placeholder={t.skillDetails.descriptionPlaceholder}
                   fullWidth
                   variant="outlined"
                 />
                 <Stack direction="row" spacing={2} sx={{ mt: 2 }}>
                   <Button type="submit" variant="contained" color="success">
-                    Save
+                    {t.common.save}
                   </Button>
                   <Button variant="outlined" color="secondary" onClick={handleGradeCancel}>
-                    Cancel
+                    {t.common.cancel}
                   </Button>
                 </Stack>
               </Stack>
@@ -414,7 +418,9 @@ export function SkillDetailsPage() {
 
         {/* Grades Loading/Error States */}
         {gradesLoading && <Loading />}
-        {gradesError && <ErrorMessage message={gradesError} />}
+        {gradesError != null && (
+          <ErrorMessage message={formatApiError(gradesError, t, t.skillDetails.gradesLoadFailed)} />
+        )}
 
         {/* Grades Table */}
         {!gradesLoading && !gradesError && (
