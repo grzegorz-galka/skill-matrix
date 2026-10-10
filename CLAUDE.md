@@ -551,6 +551,38 @@ VITE_OIDC_AUTHORITY=https://identity.intra.pse.pl
 VITE_OIDC_CLIENT_ID=skill-matrix
 ```
 
+`VITE_*` values are baked in at build time. The Dockerfile only passes
+`VITE_API_BASE_URL` (default `/api`) into the build; the others take their code defaults.
+
+### Frontend container (runtime)
+```
+BACKEND_URL=http://backend:8080   # where nginx proxies /api/
+```
+
+`frontend/nginx.conf` is an envsubst template: the Dockerfile copies it to
+`/etc/nginx/templates/` and the nginx image renders it at container start.
+Use `$` only for nginx's own variables or `BACKEND_URL`.
+
+---
+
+## Deployment
+
+**OpenShift** — see `ocp-deployment.md`.
+
+**Railway (demo)** — project `wonderful-amazement`, environment `production`,
+public URL https://frontend-production-43ae0.up.railway.app. Three services:
+
+| Service | Source | Settings |
+|---|---|---|
+| `Postgres` | Railway Postgres template (PostgreSQL 18) | — |
+| `skill-matrix` (backend) | repo, root `/backend`, branch `feat/polish-language-support` | `SPRING_PROFILES_ACTIVE=dev`; `DB_URL`, `DB_USERNAME`, `DB_PASSWORD` reference `Postgres.PG*`; private name `backend` |
+| `frontend` | repo, root `/frontend`, same branch | `BACKEND_URL=http://${{skill-matrix.RAILWAY_PRIVATE_DOMAIN}}:8080`; public domain on port 8080 |
+
+Both app services redeploy on every push to the branch. The deployment runs
+the **dev profile**: anyone with the URL can log in as any employee, admins
+included. Load only demo data. The data there was loaded through the REST API as
+`admin@company.com`, not through migrations.
+
 ---
 
 ## Testing Strategy
@@ -656,6 +688,8 @@ than fixed:
 - Reviewer pattern kinds are OR-ed, so `skill.patterns` cannot narrow a grant
   made by `department.patterns`.
 - Every authenticated user can read every other employee's comments.
+- The dev-profile JWT signing secret is committed in `application-dev.yml`, so
+  anyone who reads the repo can forge tokens for any instance running `dev`.
 
 ---
 
