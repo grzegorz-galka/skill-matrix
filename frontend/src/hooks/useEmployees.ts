@@ -5,7 +5,7 @@ import { employeeService } from '../services/employeeService';
 export function useEmployees(page = 0, size = 20, search?: string) {
   const [employees, setEmployees] = useState<Page<Employee> | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<unknown>(null);
 
   const fetchEmployees = async () => {
     try {
@@ -14,7 +14,7 @@ export function useEmployees(page = 0, size = 20, search?: string) {
       setEmployees(data);
       setError(null);
     } catch (err) {
-      setError('Failed to fetch employees');
+      setError(err);
       console.error(err);
     } finally {
       setLoading(false);
@@ -31,7 +31,7 @@ export function useEmployees(page = 0, size = 20, search?: string) {
 export function useEmployee(id: number | null) {
   const [employee, setEmployee] = useState<Employee | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<unknown>(null);
 
   useEffect(() => {
     if (id === null) {
@@ -47,7 +47,7 @@ export function useEmployee(id: number | null) {
         setEmployee(data);
         setError(null);
       } catch (err) {
-        setError('Failed to fetch employee');
+        setError(err);
         console.error(err);
       } finally {
         setLoading(false);

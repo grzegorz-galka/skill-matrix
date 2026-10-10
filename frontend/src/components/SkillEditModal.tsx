@@ -23,6 +23,8 @@ import { Skill, SkillRequest, SkillProfile, SkillGrade, SkillGradeRequest } from
 import { skillService } from '../services/skillService';
 import { skillGradeService } from '../services/skillGradeService';
 import { getLevelColor, getLevelTextColor, getLevelLabel } from '../utils/levelColors';
+import { formatApiError } from '../utils/apiError';
+import { useTranslation } from '../i18n/LanguageContext';
 
 interface SkillEditModalProps {
   open: boolean;
@@ -33,6 +35,7 @@ interface SkillEditModalProps {
 }
 
 export function SkillEditModal({ open, skill, skillProfiles, onClose, onSave }: SkillEditModalProps) {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState<SkillRequest>({
     name: '',
     description: '',
@@ -70,7 +73,7 @@ export function SkillEditModal({ open, skill, skillProfiles, onClose, onSave }: 
       onSave();
       onClose();
     } catch (err) {
-      alert('Failed to save skill');
+      alert(formatApiError(err, t, t.skillEditModal.saveFailed));
     }
   };
 
@@ -82,7 +85,7 @@ export function SkillEditModal({ open, skill, skillProfiles, onClose, onSave }: 
       const updatedProfiles = await skillService.getSkillProfiles(skill.id);
       setSkillSkillProfiles(updatedProfiles);
     } catch (err) {
-      alert('Failed to assign skill profile');
+      alert(formatApiError(err, t, t.skillEditModal.assignProfileFailed));
     }
   };
 
@@ -94,7 +97,7 @@ export function SkillEditModal({ open, skill, skillProfiles, onClose, onSave }: 
       const updatedProfiles = await skillService.getSkillProfiles(skill.id);
       setSkillSkillProfiles(updatedProfiles);
     } catch (err) {
-      alert('Failed to remove skill profile');
+      alert(formatApiError(err, t, t.skillEditModal.removeProfileFailed));
     }
   };
 
@@ -113,7 +116,7 @@ export function SkillEditModal({ open, skill, skillProfiles, onClose, onSave }: 
       setSkillGrades(updatedGrades);
       setNewGrade({ code: '', description: '', level: 1 });
     } catch (err) {
-      alert('Failed to add grade');
+      alert(formatApiError(err, t, t.skillEditModal.addGradeFailed));
     }
   };
 
@@ -132,7 +135,7 @@ export function SkillEditModal({ open, skill, skillProfiles, onClose, onSave }: 
       setSkillGrades(updatedGrades);
       setEditingGrade(null);
     } catch (err) {
-      alert('Failed to update grade');
+      alert(formatApiError(err, t, t.skillEditModal.updateGradeFailed));
     }
   };
 
@@ -149,7 +152,7 @@ export function SkillEditModal({ open, skill, skillProfiles, onClose, onSave }: 
       const updatedGrades = await skillGradeService.getBySkillId(skill.id);
       setSkillGrades(updatedGrades);
     } catch (err) {
-      alert('Failed to update grade level');
+      alert(formatApiError(err, t, t.skillEditModal.updateLevelFailed));
     }
   };
 
@@ -166,20 +169,20 @@ export function SkillEditModal({ open, skill, skillProfiles, onClose, onSave }: 
       const updatedGrades = await skillGradeService.getBySkillId(skill.id);
       setSkillGrades(updatedGrades);
     } catch (err) {
-      alert('Failed to update grade level');
+      alert(formatApiError(err, t, t.skillEditModal.updateLevelFailed));
     }
   };
 
   const handleDeleteGrade = async (gradeId: number) => {
     if (!skill) return;
 
-    if (confirm('Delete this grade?')) {
+    if (confirm(t.skillEditModal.deleteGradeConfirm)) {
       try {
         await skillGradeService.delete(gradeId);
         const updatedGrades = await skillGradeService.getBySkillId(skill.id);
         setSkillGrades(updatedGrades);
       } catch (err) {
-        alert('Failed to delete grade');
+        alert(formatApiError(err, t, t.skillEditModal.deleteGradeFailed));
       }
     }
   };
@@ -200,13 +203,13 @@ export function SkillEditModal({ open, skill, skillProfiles, onClose, onSave }: 
           <Box sx={{ p: 3, pb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Box>
               <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 0.5 }}>
-                Edit Skill: {skill?.name}
+                {t.skillEditModal.title(skill?.name ?? '')}
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                Update skill information and associated skill profiles
+                {t.skillEditModal.subtitle}
               </Typography>
             </Box>
-            <IconButton onClick={onClose} size="small">
+            <IconButton onClick={onClose} size="small" aria-label={t.skillEditModal.close}>
               <CloseIcon />
             </IconButton>
           </Box>
@@ -216,13 +219,13 @@ export function SkillEditModal({ open, skill, skillProfiles, onClose, onSave }: 
           {/* Skill Information Section */}
           <Box sx={{ p: 3 }}>
             <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 2 }}>
-              Skill Information
+              {t.skillDetails.information}
             </Typography>
 
             <Stack spacing={2}>
               <Box>
                 <Typography variant="body2" sx={{ mb: 1, fontWeight: 500 }}>
-                  Name *
+                  {t.common.name} *
                 </Typography>
                 <TextField
                   value={formData.name}
@@ -231,13 +234,13 @@ export function SkillEditModal({ open, skill, skillProfiles, onClose, onSave }: 
                   fullWidth
                   variant="outlined"
                   size="small"
-                  placeholder="Enter skill name"
+                  placeholder={t.skillEditModal.namePlaceholder}
                 />
               </Box>
 
               <Box>
                 <Typography variant="body2" sx={{ mb: 1, fontWeight: 500 }}>
-                  Description
+                  {t.common.description}
                 </Typography>
                 <TextField
                   value={formData.description}
@@ -246,7 +249,7 @@ export function SkillEditModal({ open, skill, skillProfiles, onClose, onSave }: 
                   rows={3}
                   fullWidth
                   variant="outlined"
-                  placeholder="Enter skill description"
+                  placeholder={t.skillEditModal.descriptionPlaceholder}
                 />
               </Box>
             </Stack>
@@ -257,7 +260,7 @@ export function SkillEditModal({ open, skill, skillProfiles, onClose, onSave }: 
           {/* Assigned Skill Profiles Section */}
           <Box sx={{ p: 3 }}>
             <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 2 }}>
-              Assigned Skill Profiles
+              {t.common.assignedSkillProfiles}
             </Typography>
 
             {skill && skillSkillProfiles.length > 0 && (
@@ -294,7 +297,7 @@ export function SkillEditModal({ open, skill, skillProfiles, onClose, onSave }: 
                     renderValue={() => (
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: '#6b7280' }}>
                         <AddIcon fontSize="small" />
-                        <span>Select a skill profile...</span>
+                        <span>{t.skillEditModal.selectProfile}</span>
                       </Box>
                     )}
                     sx={{ border: 'none', '& fieldset': { border: 'none' } }}
@@ -311,7 +314,7 @@ export function SkillEditModal({ open, skill, skillProfiles, onClose, onSave }: 
               </Paper>
             ) : (
               <Typography variant="body2" color="text.secondary">
-                Save skill first to assign skill profiles
+                {t.skillEditModal.saveFirstProfiles}
               </Typography>
             )}
           </Box>
@@ -321,10 +324,10 @@ export function SkillEditModal({ open, skill, skillProfiles, onClose, onSave }: 
           {/* Skill Grades Section */}
           <Box sx={{ p: 3 }}>
             <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 1 }}>
-              Skill Grades
+              {t.skillDetails.grades}
             </Typography>
             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 2 }}>
-              Grades are ordered by level (1=Beginner to 5=Expert). Use arrows to change level.
+              {t.skillEditModal.gradesHint}
             </Typography>
 
             {skill && skillGrades.length > 0 && (
@@ -345,6 +348,7 @@ export function SkillEditModal({ open, skill, skillProfiles, onClose, onSave }: 
                       <IconButton
                         size="small"
                         onClick={() => handleMoveGradeUp(grade)}
+                        aria-label={t.skillEditModal.moveUp}
                         disabled={grade.level <= 1}
                         sx={{
                           color: getLevelTextColor(grade.level),
@@ -379,6 +383,7 @@ export function SkillEditModal({ open, skill, skillProfiles, onClose, onSave }: 
                       <IconButton
                         size="small"
                         onClick={() => handleMoveGradeDown(grade)}
+                        aria-label={t.skillEditModal.moveDown}
                         disabled={grade.level >= 5}
                         sx={{
                           color: getLevelTextColor(grade.level),
@@ -397,7 +402,7 @@ export function SkillEditModal({ open, skill, skillProfiles, onClose, onSave }: 
               <Box>
                 <Stack direction="row" spacing={2} flexWrap="wrap" gap={1}>
                   <TextField
-                    label="Code"
+                    label={t.skillDetails.code}
                     value={editingGrade ? editingGrade.code : newGrade.code}
                     onChange={(e) =>
                       editingGrade
@@ -408,7 +413,7 @@ export function SkillEditModal({ open, skill, skillProfiles, onClose, onSave }: 
                     sx={{ flex: '1 1 100px', minWidth: 100 }}
                   />
                   <TextField
-                    label="Description"
+                    label={t.common.description}
                     value={editingGrade ? editingGrade.description || '' : newGrade.description}
                     onChange={(e) =>
                       editingGrade
@@ -436,7 +441,7 @@ export function SkillEditModal({ open, skill, skillProfiles, onClose, onSave }: 
                               bgcolor: getLevelColor(value as number),
                             }}
                           />
-                          <span>L{value} - {getLevelLabel(value as number)}</span>
+                          <span>L{value} - {getLevelLabel(value as number, t)}</span>
                         </Box>
                       )}
                     >
@@ -451,7 +456,7 @@ export function SkillEditModal({ open, skill, skillProfiles, onClose, onSave }: 
                                 bgcolor: getLevelColor(level),
                               }}
                             />
-                            <span>L{level} - {getLevelLabel(level)}</span>
+                            <span>L{level} - {getLevelLabel(level, t)}</span>
                           </Box>
                         </MenuItem>
                       ))}
@@ -466,7 +471,7 @@ export function SkillEditModal({ open, skill, skillProfiles, onClose, onSave }: 
                       textTransform: 'none',
                     }}
                   >
-                    {editingGrade ? 'Update' : 'Add Grade'}
+                    {editingGrade ? t.skillEditModal.update : t.skillDetails.addGrade}
                   </Button>
                 </Stack>
                 {editingGrade && (
@@ -475,13 +480,13 @@ export function SkillEditModal({ open, skill, skillProfiles, onClose, onSave }: 
                     onClick={() => setEditingGrade(null)}
                     sx={{ mt: 1, textTransform: 'none' }}
                   >
-                    Cancel Edit
+                    {t.skillEditModal.cancelEdit}
                   </Button>
                 )}
               </Box>
             ) : (
               <Typography variant="body2" color="text.secondary">
-                Save skill first to add grades
+                {t.skillEditModal.saveFirstGrades}
               </Typography>
             )}
           </Box>
@@ -501,7 +506,7 @@ export function SkillEditModal({ open, skill, skillProfiles, onClose, onSave }: 
                 px: 3,
               }}
             >
-              Cancel
+              {t.common.cancel}
             </Button>
             <Button
               type="submit"
@@ -513,7 +518,7 @@ export function SkillEditModal({ open, skill, skillProfiles, onClose, onSave }: 
                 px: 3,
               }}
             >
-              Save Changes
+              {t.common.saveChanges}
             </Button>
           </Box>
         </form>

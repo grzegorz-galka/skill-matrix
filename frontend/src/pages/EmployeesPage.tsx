@@ -30,11 +30,13 @@ import { Loading } from '../components/Loading';
 import { ErrorMessage } from '../components/ErrorMessage';
 import { Employee, EmployeeRequest, SkillProfile } from '../types';
 import { employeeService } from '../services/employeeService';
-import { getApiErrorMessage } from '../utils/apiError';
+import { formatApiError } from '../utils/apiError';
+import { useTranslation } from '../i18n/LanguageContext';
 import { useAuth } from '../auth/AuthContext';
 
 export function EmployeesPage() {
   const { user, isAdmin } = useAuth();
+  const { t } = useTranslation();
   const [page] = useState(0);
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
@@ -97,12 +99,12 @@ export function EmployeesPage() {
   };
 
   const handleDelete = async (employee: Employee) => {
-    if (confirm(`Delete employee ${employee.firstName} ${employee.lastName}?`)) {
+    if (confirm(t.employees.deleteConfirm(`${employee.firstName} ${employee.lastName}`))) {
       try {
         await employeeService.delete(employee.id);
         refetch();
       } catch (err) {
-        alert(getApiErrorMessage(err, 'Failed to delete employee'));
+        alert(formatApiError(err, t, t.employees.deleteFailed));
       }
     }
   };
@@ -118,7 +120,7 @@ export function EmployeesPage() {
       setShowForm(false);
       refetch();
     } catch (err) {
-      alert(getApiErrorMessage(err, 'Failed to save employee'));
+      alert(formatApiError(err, t, t.employees.saveFailed));
     }
   };
 
@@ -130,7 +132,7 @@ export function EmployeesPage() {
       const updatedProfiles = await employeeService.getSkillProfiles(editingEmployee.id);
       setEmployeeSkillProfiles(updatedProfiles);
     } catch (err) {
-      alert(getApiErrorMessage(err, 'Failed to assign skill profile'));
+      alert(formatApiError(err, t, t.employees.assignProfileFailed));
       console.error(err);
     }
   };
@@ -138,13 +140,13 @@ export function EmployeesPage() {
   const handleRemoveSkillProfile = async (skillProfileId: number) => {
     if (!editingEmployee) return;
 
-    if (confirm('Remove this skill profile from the employee?')) {
+    if (confirm(t.employees.removeProfileConfirm)) {
       try {
         await employeeService.removeSkillProfile(editingEmployee.id, skillProfileId);
         const updatedProfiles = await employeeService.getSkillProfiles(editingEmployee.id);
         setEmployeeSkillProfiles(updatedProfiles);
       } catch (err) {
-        alert(getApiErrorMessage(err, 'Failed to remove skill profile'));
+        alert(formatApiError(err, t, t.employees.removeProfileFailed));
         console.error(err);
       }
     }
@@ -163,7 +165,7 @@ export function EmployeesPage() {
   };
 
   if (loading) return <Loading />;
-  if (error) return <ErrorMessage message={error} />;
+  if (error) return <ErrorMessage message={formatApiError(error, t, t.employees.loadFailed)} />;
 
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: '#f8fafc' }}>
@@ -176,10 +178,10 @@ export function EmployeesPage() {
             </Avatar>
             <Box>
               <Typography variant="h4" component="h1" sx={{ fontWeight: 'bold', mb: 0.5 }}>
-                Employees
+                {t.employees.title}
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                Manage your team members and their skills
+                {t.employees.subtitle}
               </Typography>
             </Box>
           </Box>
@@ -196,7 +198,7 @@ export function EmployeesPage() {
                 py: 1,
               }}
             >
-              Add Employee
+              {t.employees.add}
             </Button>
           )}
         </Box>
@@ -211,17 +213,17 @@ export function EmployeesPage() {
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <PeopleIcon sx={{ color: '#6b7280' }} />
                   <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-                    All Employees
+                    {t.employees.all}
                   </Typography>
                 </Box>
                 <Typography variant="body2" color="text.secondary">
-                  {employees?.totalElements || 0} employees
+                  {t.employees.count(employees?.totalElements || 0)}
                 </Typography>
               </Box>
 
               {/* Search Bar */}
               <TextField
-                placeholder="Search employees..."
+                placeholder={t.employees.searchPlaceholder}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 fullWidth
@@ -266,7 +268,7 @@ export function EmployeesPage() {
                           {employee.firstName} {employee.lastName}
                         </Typography>
                         <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                          {employee.position || 'No position'}
+                          {employee.position || t.employees.noPosition}
                         </Typography>
                         <Stack direction="row" spacing={2} sx={{ fontSize: '0.875rem', color: '#6b7280' }}>
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
@@ -285,6 +287,7 @@ export function EmployeesPage() {
                         {(isAdmin || user?.email === employee.email) && (
                           <IconButton
                             size="small"
+                            aria-label={t.common.edit}
                             onClick={() => handleEdit(employee)}
                             sx={{ color: '#2563eb' }}
                           >
@@ -294,6 +297,7 @@ export function EmployeesPage() {
                         {isAdmin && (
                           <IconButton
                             size="small"
+                            aria-label={t.common.delete}
                             onClick={() => handleDelete(employee)}
                             sx={{ color: '#ef4444' }}
                           >
@@ -309,7 +313,7 @@ export function EmployeesPage() {
               {/* Pagination */}
               {employees && (
                 <Typography variant="body2" align="center" sx={{ mt: 3, color: '#6b7280' }}>
-                  Page {employees.page + 1} of {employees.totalPages} (Total: {employees.totalElements} employees)
+                  {t.employees.paging(employees.page + 1, employees.totalPages, employees.totalElements)}
                 </Typography>
               )}
             </Paper>
@@ -323,7 +327,7 @@ export function EmployeesPage() {
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
                   <EditIcon sx={{ color: '#2563eb' }} />
                   <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-                    {editingEmployee ? 'Edit Employee' : 'New Employee'}
+                    {editingEmployee ? t.employees.editTitle : t.employees.newTitle}
                   </Typography>
                 </Box>
 
@@ -333,7 +337,7 @@ export function EmployeesPage() {
                     <Box>
                       <Typography variant="body2" sx={{ mb: 1, fontWeight: 500, display: 'flex', alignItems: 'center', gap: 0.5 }}>
                         <PersonIcon sx={{ fontSize: 16 }} />
-                        First Name *
+                        {t.employees.firstName} *
                       </Typography>
                       <TextField
                         value={formData.firstName}
@@ -342,7 +346,7 @@ export function EmployeesPage() {
                         fullWidth
                         variant="outlined"
                         size="small"
-                        placeholder="Enter first name"
+                        placeholder={t.employees.firstNamePlaceholder}
                       />
                     </Box>
 
@@ -350,7 +354,7 @@ export function EmployeesPage() {
                     <Box>
                       <Typography variant="body2" sx={{ mb: 1, fontWeight: 500, display: 'flex', alignItems: 'center', gap: 0.5 }}>
                         <PersonIcon sx={{ fontSize: 16 }} />
-                        Last Name *
+                        {t.employees.lastName} *
                       </Typography>
                       <TextField
                         value={formData.lastName}
@@ -359,7 +363,7 @@ export function EmployeesPage() {
                         fullWidth
                         variant="outlined"
                         size="small"
-                        placeholder="Enter last name"
+                        placeholder={t.employees.lastNamePlaceholder}
                       />
                     </Box>
 
@@ -367,7 +371,7 @@ export function EmployeesPage() {
                     <Box>
                       <Typography variant="body2" sx={{ mb: 1, fontWeight: 500, display: 'flex', alignItems: 'center', gap: 0.5 }}>
                         <EmailIcon sx={{ fontSize: 16 }} />
-                        Email *
+                        {t.employees.email} *
                       </Typography>
                       <TextField
                         type="email"
@@ -377,7 +381,7 @@ export function EmployeesPage() {
                         fullWidth
                         variant="outlined"
                         size="small"
-                        placeholder="Enter email address"
+                        placeholder={t.employees.emailPlaceholder}
                       />
                     </Box>
 
@@ -385,7 +389,7 @@ export function EmployeesPage() {
                     <Box>
                       <Typography variant="body2" sx={{ mb: 1, fontWeight: 500, display: 'flex', alignItems: 'center', gap: 0.5 }}>
                         <BusinessIcon sx={{ fontSize: 16 }} />
-                        Department
+                        {t.employees.department}
                       </Typography>
                       <TextField
                         value={formData.department}
@@ -393,7 +397,7 @@ export function EmployeesPage() {
                         fullWidth
                         variant="outlined"
                         size="small"
-                        placeholder="Enter department"
+                        placeholder={t.employees.departmentPlaceholder}
                       />
                     </Box>
 
@@ -401,7 +405,7 @@ export function EmployeesPage() {
                     <Box>
                       <Typography variant="body2" sx={{ mb: 1, fontWeight: 500, display: 'flex', alignItems: 'center', gap: 0.5 }}>
                         <WorkIcon sx={{ fontSize: 16 }} />
-                        Position
+                        {t.employees.position}
                       </Typography>
                       <TextField
                         value={formData.position}
@@ -409,14 +413,14 @@ export function EmployeesPage() {
                         fullWidth
                         variant="outlined"
                         size="small"
-                        placeholder="Enter position"
+                        placeholder={t.employees.positionPlaceholder}
                       />
                     </Box>
 
                     {/* Skill Profiles Section - Always show */}
                     <Box sx={{ mt: 1 }}>
                       <Typography variant="body2" sx={{ mb: 1.5, fontWeight: 500 }}>
-                        Assigned Skill Profiles:
+                        {t.common.assignedSkillProfiles}:
                       </Typography>
                       {editingEmployee && employeeSkillProfiles.length > 0 ? (
                         <Stack direction="row" spacing={1} sx={{ mb: 2, flexWrap: 'wrap', gap: 1 }}>
@@ -435,11 +439,11 @@ export function EmployeesPage() {
                         </Stack>
                       ) : editingEmployee ? (
                         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                          No skill profiles assigned
+                          {t.common.noSkillProfilesAssigned}
                         </Typography>
                       ) : (
                         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                          Save employee first to assign skill profiles
+                          {t.employees.saveFirst}
                         </Typography>
                       )}
 
@@ -463,7 +467,7 @@ export function EmployeesPage() {
                               renderValue={() => (
                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: '#6b7280' }}>
                                   <AddIcon fontSize="small" />
-                                  <span>Add Skill Profile</span>
+                                  <span>{t.common.addSkillProfile}</span>
                                 </Box>
                               )}
                               sx={{ border: 'none', '& fieldset': { border: 'none' } }}
@@ -495,7 +499,7 @@ export function EmployeesPage() {
                           fontWeight: 'bold',
                         }}
                       >
-                        Save
+                        {t.common.save}
                       </Button>
                       <Button
                         variant="outlined"
@@ -510,7 +514,7 @@ export function EmployeesPage() {
                           fontWeight: 'bold',
                         }}
                       >
-                        Cancel
+                        {t.common.cancel}
                       </Button>
                     </Stack>
                   </Stack>

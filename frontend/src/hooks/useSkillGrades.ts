@@ -5,7 +5,7 @@ import { skillGradeService } from '../services/skillGradeService';
 export function useSkillGrades(skillId: number | null) {
   const [skillGrades, setSkillGrades] = useState<SkillGrade[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<unknown>(null);
 
   const fetchSkillGrades = async () => {
     if (!skillId) {
@@ -20,7 +20,7 @@ export function useSkillGrades(skillId: number | null) {
       setSkillGrades(data);
       setError(null);
     } catch (err) {
-      setError('Failed to fetch skill grades');
+      setError(err);
       console.error(err);
     } finally {
       setLoading(false);

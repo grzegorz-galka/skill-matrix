@@ -37,7 +37,9 @@ import {
   MatrixSkill,
 } from '../types';
 import { skillsMatrixService } from '../services/skillsMatrixService';
-import { getLevelColor, getLevelTextColor, LEVEL_COLORS, LEVEL_LABELS } from '../utils/levelColors';
+import { getLevelColor, getLevelTextColor, getLevelLabel, LEVEL_COLORS } from '../utils/levelColors';
+import { formatApiError } from '../utils/apiError';
+import { useTranslation } from '../i18n/LanguageContext';
 
 interface FilterChipsProps {
   label: string;
@@ -46,9 +48,10 @@ interface FilterChipsProps {
   onRemove: (index: number) => void;
   placeholder: string;
   hints: string[];
+  addLabel: string;
 }
 
-function FilterChips({ label, patterns, onAdd, onRemove, placeholder, hints }: FilterChipsProps) {
+function FilterChips({ label, patterns, onAdd, onRemove, placeholder, hints, addLabel }: FilterChipsProps) {
   const [inputValue, setInputValue] = useState('');
 
   const handleAdd = (value: string) => {
@@ -102,6 +105,7 @@ function FilterChips({ label, patterns, onAdd, onRemove, placeholder, hints }: F
                   <IconButton
                     size="small"
                     onClick={() => handleAdd(inputValue)}
+                    aria-label={addLabel}
                     sx={{ color: '#2563eb' }}
                   >
                     <AddIcon fontSize="small" />
@@ -125,10 +129,11 @@ function FilterChips({ label, patterns, onAdd, onRemove, placeholder, hints }: F
 }
 
 export function SkillsMatrixPage() {
+  const { t } = useTranslation();
   const [matrixData, setMatrixData] = useState<SkillsMatrixResponse | null>(null);
   const [filterHints, setFilterHints] = useState<SkillsMatrixFilterHints | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<unknown>(null);
   const [filtersExpanded, setFiltersExpanded] = useState(true);
 
   const [filters, setFilters] = useState<SkillsMatrixFilterRequest>({
@@ -153,7 +158,7 @@ export function SkillsMatrixPage() {
       const data = await skillsMatrixService.getMatrix(filters);
       setMatrixData(data);
     } catch (err) {
-      setError('Failed to load skills matrix');
+      setError(err);
       console.error(err);
     } finally {
       setLoading(false);
@@ -218,7 +223,13 @@ export function SkillsMatrixPage() {
     const wsData: (string | number)[][] = [];
 
     // Header row
-    const headerRow = ['Employee', 'Department', 'Position', ...matrixData.skills.map((s) => s.name)];
+    const exportLabels = t.matrix.export;
+    const headerRow = [
+      exportLabels.employee,
+      exportLabels.department,
+      exportLabels.position,
+      ...matrixData.skills.map((s) => s.name),
+    ];
     wsData.push(headerRow);
 
     // Employee rows
@@ -236,7 +247,7 @@ export function SkillsMatrixPage() {
     });
 
     // Summary row
-    const summaryRow: (string | number)[] = ['Summary', '', ''];
+    const summaryRow: (string | number)[] = [exportLabels.summary, '', ''];
     matrixData.skills.forEach((skill) => {
       const summary = matrixData.skillSummaries[skill.id];
       if (summary && Object.keys(summary.gradeCounts).length > 0) {
@@ -253,7 +264,7 @@ export function SkillsMatrixPage() {
     // Create workbook and worksheet
     const ws = XLSX.utils.aoa_to_sheet(wsData);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Skills Matrix');
+    XLSX.utils.book_append_sheet(wb, ws, exportLabels.sheetName);
 
     // Auto-size columns
     const colWidths = headerRow.map((_, colIndex) => {
@@ -273,7 +284,7 @@ export function SkillsMatrixPage() {
   };
 
   if (loading && !matrixData) return <Loading />;
-  if (error) return <ErrorMessage message={error} />;
+  if (error) return <ErrorMessage message={formatApiError(error, t, t.matrix.loadFailed)} />;
 
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: '#f8fafc' }}>
@@ -286,10 +297,10 @@ export function SkillsMatrixPage() {
             </Avatar>
             <Box>
               <Typography variant="h4" component="h1" sx={{ fontWeight: 'bold', mb: 0.5 }}>
-                Skills Matrix
+                {t.matrix.title}
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                View employee skills at a glance
+                {t.matrix.subtitle}
               </Typography>
             </Box>
           </Box>
@@ -305,7 +316,7 @@ export function SkillsMatrixPage() {
               px: 3,
             }}
           >
-            Export to Excel
+            {t.matrix.exportButton}
           </Button>
         </Box>
 
@@ -323,7 +334,7 @@ export function SkillsMatrixPage() {
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <FilterAltIcon sx={{ color: '#6b7280' }} />
               <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-                Filters
+                {t.matrix.filters}
               </Typography>
             </Box>
             <IconButton size="small">
@@ -338,31 +349,34 @@ export function SkillsMatrixPage() {
                 variant="subtitle2"
                 sx={{ mb: 2, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 0.5 }}
               >
-                Employee Filters
+                {t.matrix.employeeFilters}
               </Typography>
               <Stack direction="row" spacing={2} sx={{ mb: 3, flexWrap: 'wrap', gap: 2 }}>
                 <FilterChips
-                  label="Name"
+                  label={t.matrix.name}
                   patterns={filters.namePatterns || []}
                   onAdd={(p) => addPattern('namePatterns', p)}
                   onRemove={(i) => removePattern('namePatterns', i)}
-                  placeholder="e.g., John* or *Smith"
+                  placeholder={t.matrix.namePlaceholder}
+                  addLabel={t.matrix.addPattern}
                   hints={filterHints?.names || []}
                 />
                 <FilterChips
-                  label="Department"
+                  label={t.matrix.department}
                   patterns={filters.departmentPatterns || []}
                   onAdd={(p) => addPattern('departmentPatterns', p)}
                   onRemove={(i) => removePattern('departmentPatterns', i)}
-                  placeholder="e.g., Engineering*"
+                  placeholder={t.matrix.departmentPlaceholder}
+                  addLabel={t.matrix.addPattern}
                   hints={filterHints?.departments || []}
                 />
                 <FilterChips
-                  label="Position"
+                  label={t.matrix.position}
                   patterns={filters.positionPatterns || []}
                   onAdd={(p) => addPattern('positionPatterns', p)}
                   onRemove={(i) => removePattern('positionPatterns', i)}
-                  placeholder="e.g., *Developer*"
+                  placeholder={t.matrix.positionPlaceholder}
+                  addLabel={t.matrix.addPattern}
                   hints={filterHints?.positions || []}
                 />
               </Stack>
@@ -372,23 +386,25 @@ export function SkillsMatrixPage() {
                 variant="subtitle2"
                 sx={{ mb: 2, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 0.5 }}
               >
-                Skill Filters
+                {t.matrix.skillFilters}
               </Typography>
               <Stack direction="row" spacing={2} sx={{ flexWrap: 'wrap', gap: 2 }}>
                 <FilterChips
-                  label="Skill Name"
+                  label={t.matrix.skillName}
                   patterns={filters.skillNamePatterns || []}
                   onAdd={(p) => addPattern('skillNamePatterns', p)}
                   onRemove={(i) => removePattern('skillNamePatterns', i)}
-                  placeholder="e.g., Java* or Python"
+                  placeholder={t.matrix.skillNamePlaceholder}
+                  addLabel={t.matrix.addPattern}
                   hints={filterHints?.skillNames || []}
                 />
                 <FilterChips
-                  label="Skill Profile"
+                  label={t.matrix.skillProfile}
                   patterns={filters.skillProfilePatterns || []}
                   onAdd={(p) => addPattern('skillProfilePatterns', p)}
                   onRemove={(i) => removePattern('skillProfilePatterns', i)}
-                  placeholder="e.g., Backend*"
+                  placeholder={t.matrix.skillProfilePlaceholder}
+                  addLabel={t.matrix.addPattern}
                   hints={filterHints?.skillProfileNames || []}
                 />
               </Stack>
@@ -400,7 +416,7 @@ export function SkillsMatrixPage() {
         <Paper sx={{ p: 2, borderRadius: 2, mb: 3 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, flexWrap: 'wrap' }}>
             <Typography variant="body2" sx={{ fontWeight: 500, color: '#374151' }}>
-              Level Scale:
+              {t.matrix.levelScale}
             </Typography>
             {Object.entries(LEVEL_COLORS).map(([level, color]) => (
               <Box key={level} sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
@@ -414,7 +430,7 @@ export function SkillsMatrixPage() {
                   }}
                 />
                 <Typography variant="body2" sx={{ color: '#6b7280' }}>
-                  L{level}: {LEVEL_LABELS[Number(level)]}
+                  L{level}: {getLevelLabel(Number(level), t)}
                 </Typography>
               </Box>
             ))}
@@ -438,7 +454,7 @@ export function SkillsMatrixPage() {
                         zIndex: 3,
                       }}
                     >
-                      Employee
+                      {t.matrix.employee}
                     </TableCell>
                     {matrixData.skills.map((skill: MatrixSkill) => (
                       <TableCell
@@ -454,8 +470,8 @@ export function SkillsMatrixPage() {
                         <Tooltip
                           title={
                             skill.skillProfileNames.length > 0
-                              ? `Profiles: ${skill.skillProfileNames.join(', ')}`
-                              : 'No profiles'
+                              ? t.matrix.profiles(skill.skillProfileNames.join(', '))
+                              : t.matrix.noProfiles
                           }
                         >
                           <span>{skill.name}</span>
@@ -512,9 +528,9 @@ export function SkillsMatrixPage() {
                                     </div>
                                     {cell.gradeDescription && <div>{cell.gradeDescription}</div>}
                                     {cell.yearsOfExperience && (
-                                      <div>{cell.yearsOfExperience} years exp.</div>
+                                      <div>{t.matrix.yearsExperience(cell.yearsOfExperience)}</div>
                                     )}
-                                    {cell.certified && <div>Certified</div>}
+                                    {cell.certified && <div>{t.matrix.certified}</div>}
                                   </>
                                 }
                               >
@@ -556,7 +572,7 @@ export function SkillsMatrixPage() {
                         pt: 2,
                       }}
                     >
-                      Summary
+                      {t.matrix.summary}
                     </TableCell>
                     {matrixData.skills.map((skill: MatrixSkill) => (
                       <TableCell
@@ -581,12 +597,12 @@ export function SkillsMatrixPage() {
             <Box sx={{ p: 6, textAlign: 'center' }}>
               <Typography color="text.secondary">
                 {matrixData?.employees.length === 0 && matrixData?.skills.length === 0
-                  ? 'No employees or skills have grades assigned'
+                  ? t.matrix.emptyAll
                   : matrixData?.employees.length === 0
-                  ? 'No employees with grades match the filters'
+                  ? t.matrix.emptyEmployees
                   : matrixData?.skills.length === 0
-                  ? 'No skills with grades match the filters'
-                  : 'No data available'}
+                  ? t.matrix.emptySkills
+                  : t.common.noData}
               </Typography>
             </Box>
           )}
@@ -596,13 +612,13 @@ export function SkillsMatrixPage() {
         {matrixData && (
           <Box sx={{ mt: 2, display: 'flex', gap: 3, justifyContent: 'center' }}>
             <Typography variant="body2" color="text.secondary">
-              {matrixData.employees.length} employees
+              {t.matrix.employeesCount(matrixData.employees.length)}
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              {matrixData.skills.length} skills
+              {t.matrix.skillsCount(matrixData.skills.length)}
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              {Object.keys(matrixData.cells).length} grades assigned
+              {t.matrix.gradesCount(Object.keys(matrixData.cells).length)}
             </Typography>
           </Box>
         )}

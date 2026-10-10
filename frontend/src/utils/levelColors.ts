@@ -1,3 +1,5 @@
+import type { Messages } from '../i18n/en';
+
 // Level color scheme: 1=light yellow to 5=intensive green
 export const LEVEL_COLORS: Record<number, string> = {
   1: '#FEF9C3', // Pale Yellow-Green (Sprout)
@@ -23,14 +25,7 @@ export const getLevelTextColor = (level: number): string => {
   return LEVEL_TEXT_COLORS[level] || LEVEL_TEXT_COLORS[1];
 };
 
-export const LEVEL_LABELS: Record<number, string> = {
-  1: 'Beginner',
-  2: 'Basic',
-  3: 'Intermediate',
-  4: 'Advanced',
-  5: 'Expert',
-};
-
-export const getLevelLabel = (level: number): string => {
-  return LEVEL_LABELS[level] || 'Unknown';
+export const getLevelLabel = (level: number, t: Messages): string => {
+  const labels = t.levels as Record<number, string>;
+  return labels[level] ?? t.levels.unknown;
 };

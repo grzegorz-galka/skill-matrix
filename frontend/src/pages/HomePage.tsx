@@ -9,83 +9,65 @@ import {
   School as SchoolIcon,
   GridView as GridViewIcon,
 } from '@mui/icons-material';
+import { useTranslation } from '../i18n/LanguageContext';
 
 export function HomePage() {
+  const { t } = useTranslation();
+  const featureText = t.home.features;
   const features = [
     {
       icon: <UsersIcon sx={{ fontSize: 32 }} />,
-      title: 'Employees',
-      description: 'Manage employee information with ease. Keep track of team members and their professional development.',
+      title: featureText.employees.title,
+      description: featureText.employees.description,
       link: '/employees',
-      linkText: 'Manage Employees',
+      linkText: featureText.employees.link,
       color: '#3b82f6', // blue-500
       bgColor: '#dbeafe', // blue-100
       borderColor: '#3b82f6',
     },
     {
       icon: <TargetIcon sx={{ fontSize: 32 }} />,
-      title: 'Skill Profiles',
-      description: 'Define groups of related skills and create comprehensive skill profiles for different roles.',
+      title: featureText.skillProfiles.title,
+      description: featureText.skillProfiles.description,
       link: '/skill-profiles',
-      linkText: 'Create Profiles',
+      linkText: featureText.skillProfiles.link,
       color: '#6366f1', // indigo-600
       bgColor: '#e0e7ff', // indigo-100
       borderColor: '#6366f1',
     },
     {
       icon: <AwardIcon sx={{ fontSize: 32 }} />,
-      title: 'Skills',
-      description: 'Manage individual skills within profiles and track competencies across your organization.',
+      title: featureText.skills.title,
+      description: featureText.skills.description,
       link: '/skills',
-      linkText: 'Manage Skills',
+      linkText: featureText.skills.link,
       color: '#a855f7', // purple-600
       bgColor: '#f3e8ff', // purple-100
       borderColor: '#a855f7',
     },
     {
       icon: <SchoolIcon sx={{ fontSize: 32 }} />,
-      title: 'Assess Skills',
-      description: 'Evaluate and assign skill grades to employees. Track proficiency levels and certifications.',
+      title: featureText.assess.title,
+      description: featureText.assess.description,
       link: '/employee-skills',
-      linkText: 'Assess Skills',
+      linkText: featureText.assess.link,
       color: '#10b981', // emerald-500
       bgColor: '#d1fae5', // emerald-100
       borderColor: '#10b981',
     },
     {
       icon: <GridViewIcon sx={{ fontSize: 32 }} />,
-      title: 'Skills Matrix',
-      description: 'View a comprehensive matrix of employee skills. Export reports and analyze team capabilities.',
+      title: featureText.matrix.title,
+      description: featureText.matrix.description,
       link: '/skills-matrix',
-      linkText: 'View Matrix',
+      linkText: featureText.matrix.link,
       color: '#f59e0b', // amber-500
       bgColor: '#fef3c7', // amber-100
       borderColor: '#f59e0b',
     },
   ];
 
-  const steps = [
-    {
-      number: '1',
-      title: 'Create Skill Profiles to group related skills',
-      description: 'Define the core competencies and skill groups needed for your organization.',
-    },
-    {
-      number: '2',
-      title: 'Add Skills to each profile',
-      description: 'Build comprehensive skill sets by adding individual skills to your profiles.',
-    },
-    {
-      number: '3',
-      title: 'Create Employee records',
-      description: 'Add your team members and begin tracking their professional development.',
-    },
-    {
-      number: '4',
-      title: 'Assign skill profiles to employees',
-      description: 'Match employees with the right skill profiles to identify gaps and growth opportunities.',
-    },
-  ];
+  const steps = t.home.steps.map((step, index) => ({ number: String(index + 1), ...step }));
 
   return (
     <Box
@@ -110,7 +92,7 @@ export function HomePage() {
           >
             <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
               <SparklesIcon sx={{ fontSize: 18 }} />
-              Transform Your Workforce Management
+              {t.home.badge}
             </Typography>
           </Box>
 
@@ -124,7 +106,7 @@ export function HomePage() {
               fontSize: { xs: '2.5rem', md: '3.5rem' },
             }}
           >
-            Employee Skills Management System
+            {t.home.title}
           </Typography>
 
           <Typography
@@ -138,8 +120,7 @@ export function HomePage() {
               lineHeight: 1.6,
             }}
           >
-            Welcome to the Employee Skills Management application. Use the navigation menu to manage your team's
-            skills, profiles, and growth opportunities.
+            {t.home.intro}
           </Typography>
 
           <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
@@ -163,7 +144,7 @@ export function HomePage() {
                 },
               }}
             >
-              Get Started
+              {t.home.getStarted}
             </Button>
             <Button
               variant="outlined"
@@ -185,7 +166,7 @@ export function HomePage() {
                 },
               }}
             >
-              Learn More
+              {t.home.learnMore}
             </Button>
           </Box>
         </Box>
@@ -268,7 +249,7 @@ export function HomePage() {
         >
           <Box sx={{ maxWidth: '800px' }}>
             <Typography variant="h3" sx={{ mb: 4, fontWeight: 700 }}>
-              Getting Started
+              {t.home.gettingStarted}
             </Typography>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
               {steps.map((step) => (

@@ -79,9 +79,10 @@ skill-matrix/
 ├── frontend/
 │   ├── src/
 │   │   ├── auth/            # AuthContext, AuthProvider, DevLoginPage, OidcCallback
-│   │   ├── components/      # DataTable, SkillEditModal, Layout, Loading, ErrorMessage
+│   │   ├── components/      # DataTable, SkillEditModal, Layout, LanguageToggle, Loading, ErrorMessage
 │   │   ├── pages/           # Route-level components
 │   │   ├── hooks/           # useEmployees, useSkills, useSkillGrades, useSkillProfiles
+│   │   ├── i18n/            # LanguageContext, en.ts, pl.ts (UI text in English and Polish)
 │   │   ├── services/        # api.ts + one service per resource
 │   │   ├── theme/           # MUI theme
 │   │   ├── types/           # Shared TypeScript interfaces
@@ -215,6 +216,19 @@ export function useEmployees() {
 - Material-UI components with the `sx` prop and the shared theme in `theme/theme.ts`
 - Level colours for grades come from `utils/levelColors.ts` — do not hard-code them
 - Avoid inline `style={{}}` except for dynamic values
+
+**Localization (English / Polish):**
+- Every piece of UI text goes through `useTranslation()` from `i18n/LanguageContext.tsx`
+  and lives in `i18n/en.ts`, with the Polish twin in `i18n/pl.ts`. `pl.ts` is typed
+  against `en.ts`, so a missing translation fails `npm run build`.
+- The active language is chosen with the EN/PL toggle, stored per browser in
+  `localStorage['skill-matrix.language']`, and defaults to Polish for `pl*` browsers,
+  English otherwise. Nothing is sent to the backend.
+- **Data is never translated**: names, descriptions, grade codes, comments, and the
+  backend's own error text are shown exactly as stored or returned.
+- Report API failures with `formatApiError(err, t, t.<screen>.<operation>Failed)` from
+  `utils/apiError.ts`: a localized headline by status, then the server's message.
+- Level labels come from `getLevelLabel(level, t)`; role names from `t.roles`.
 
 ---
 

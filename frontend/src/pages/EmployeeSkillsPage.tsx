@@ -32,11 +32,16 @@ import { Loading } from '../components/Loading';
 import { ErrorMessage } from '../components/ErrorMessage';
 import { Skill, SkillGrade, Employee, SkillProfile, EmployeeSkillGrade, EmployeeSkillGradeRequest } from '../types';
 import { getLevelColor, getLevelTextColor } from '../utils/levelColors';
-import { getApiErrorMessage } from '../utils/apiError';
+import { formatApiError } from '../utils/apiError';
+import { useTranslation } from '../i18n/LanguageContext';
+import type { Messages } from '../i18n/en';
 
 interface SkillWithGrades extends Skill {
   grades: SkillGrade[];
 }
+
+// Messages are resolved at render time so they follow a language switch.
+type LocalizedMessage = (t: Messages) => string;
 
 interface PossessedSkill {
   skill: Skill;
@@ -46,6 +51,7 @@ interface PossessedSkill {
 }
 
 export function EmployeeSkillsPage() {
+  const { t } = useTranslation();
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
   const { employees, loading: employeesLoading } = useEmployees(0, 1000);
 
@@ -58,12 +64,12 @@ export function EmployeeSkillsPage() {
   const [showAllSkills, setShowAllSkills] = useState(false);
   const [filterText, setFilterText] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<LocalizedMessage | null>(null);
   const [hasChanges, setHasChanges] = useState(false);
   const [originalPossessedSkills, setOriginalPossessedSkills] = useState<PossessedSkill[]>([]);
-  const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({
+  const [snackbar, setSnackbar] = useState<{ open: boolean; message: LocalizedMessage; severity: 'success' | 'error' }>({
     open: false,
-    message: '',
+    message: () => '',
     severity: 'success',
   });
 
@@ -85,7 +91,7 @@ export function EmployeeSkillsPage() {
         setAllSkills(skillsWithGrades);
         setError(null);
       } catch (err) {
-        setError('Failed to load skills');
+        setError(() => (messages: Messages) => formatApiError(err, messages, messages.employeeSkills.loadSkillsFailed));
         console.error(err);
       } finally {
         setLoading(false);
@@ -139,7 +145,7 @@ export function EmployeeSkillsPage() {
         setHasChanges(false);
         setError(null);
       } catch (err) {
-        setError('Failed to load employee data');
+        setError(() => (messages: Messages) => formatApiError(err, messages, messages.employeeSkills.loadEmployeeFailed));
         console.error(err);
       } finally {
         setLoading(false);
@@ -253,7 +259,7 @@ export function EmployeeSkillsPage() {
       }
 
       setHasChanges(false);
-      setSnackbar({ open: true, message: 'Changes saved successfully', severity: 'success' });
+      setSnackbar({ open: true, message: (messages) => messages.employeeSkills.saved, severity: 'success' });
 
       // Reload employee skills
       const employeeSkillGrades = await employeeSkillGradeService.getByEmployeeId(selectedEmployee.id);
@@ -277,7 +283,11 @@ export function EmployeeSkillsPage() {
       setOriginalPossessedSkills(possessed);
 
     } catch (err) {
-      setSnackbar({ open: true, message: getApiErrorMessage(err, 'Failed to save changes'), severity: 'error' });
+      setSnackbar({
+        open: true,
+        message: (messages) => formatApiError(err, messages, messages.employeeSkills.saveFailed),
+        severity: 'error',
+      });
       console.error(err);
     } finally {
       setLoading(false);
@@ -299,7 +309,7 @@ export function EmployeeSkillsPage() {
   };
 
   if (employeesLoading || loading) return <Loading />;
-  if (error) return <ErrorMessage message={error} />;
+  if (error) return <ErrorMessage message={error(t)} />;
 
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: '#f3f4f6' }}>
@@ -311,10 +321,10 @@ export function EmployeeSkillsPage() {
           </Avatar>
           <Box>
             <Typography variant="h4" component="h1" sx={{ fontWeight: 'bold', mb: 0.5 }}>
-              Employee Skills
+              {t.employeeSkills.title}
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Manage employee skill grades and competencies
+              {t.employeeSkills.subtitle}
             </Typography>
           </Box>
         </Box>
@@ -322,7 +332,7 @@ export function EmployeeSkillsPage() {
         {/* Employee Selector */}
         <Paper sx={{ p: 3, mb: 3, borderRadius: 2 }}>
           <Typography variant="subtitle2" sx={{ mb: 1.5, fontWeight: 500 }}>
-            Select Employee
+            {t.employeeSkills.selectEmployee}
           </Typography>
           <Autocomplete
             options={employees?.content || []}
@@ -332,7 +342,7 @@ export function EmployeeSkillsPage() {
             renderInput={(params) => (
               <TextField
                 {...params}
-                placeholder="Search for an employee..."
+                placeholder={t.employeeSkills.searchEmployee}
                 size="small"
               />
             )}
@@ -354,7 +364,7 @@ export function EmployeeSkillsPage() {
                       <SchoolIcon sx={{ fontSize: 18 }} />
                     </Avatar>
                     <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-                      Available Skills
+                      {t.employeeSkills.available}
                     </Typography>
                   </Box>
                   <Box sx={{
@@ -371,7 +381,7 @@ export function EmployeeSkillsPage() {
                 </Box>
 
                 <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 2 }}>
-                  Select skills to add
+                  {t.employeeSkills.availableHint}
                 </Typography>
 
                 {/* Show All Skills Toggle */}
@@ -383,13 +393,13 @@ export function EmployeeSkillsPage() {
                       size="small"
                     />
                   }
-                  label={<Typography variant="body2">Show skills from all profiles</Typography>}
+                  label={<Typography variant="body2">{t.employeeSkills.showAll}</Typography>}
                   sx={{ mb: 2 }}
                 />
 
                 {/* Filter */}
                 <TextField
-                  placeholder="Filter skills..."
+                  placeholder={t.employeeSkills.filterPlaceholder}
                   value={filterText}
                   onChange={(e) => setFilterText(e.target.value)}
                   fullWidth
@@ -415,7 +425,7 @@ export function EmployeeSkillsPage() {
                 }}>
                   {availableSkills.length === 0 ? (
                     <Typography variant="body2" color="text.secondary" sx={{ p: 3, textAlign: 'center' }}>
-                      No available skills
+                      {t.employeeSkills.noAvailable}
                     </Typography>
                   ) : (
                     availableSkills.map((skill) => (
@@ -464,6 +474,7 @@ export function EmployeeSkillsPage() {
               <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 1 }}>
                 <IconButton
                   onClick={handleMoveToPressed}
+                  aria-label={t.employeeSkills.addSelected}
                   disabled={selectedAvailableSkills.size === 0}
                   sx={{
                     bgcolor: '#818cf8',
@@ -476,6 +487,7 @@ export function EmployeeSkillsPage() {
                 </IconButton>
                 <IconButton
                   onClick={handleMoveToAvailable}
+                  aria-label={t.employeeSkills.removeSelected}
                   disabled={selectedPossessedSkills.size === 0}
                   sx={{
                     bgcolor: '#818cf8',
@@ -497,7 +509,7 @@ export function EmployeeSkillsPage() {
                       <SchoolIcon sx={{ fontSize: 18 }} />
                     </Avatar>
                     <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-                      Possessed Skills
+                      {t.employeeSkills.possessed}
                     </Typography>
                   </Box>
                   <Box sx={{
@@ -514,7 +526,7 @@ export function EmployeeSkillsPage() {
                 </Box>
 
                 <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 3 }}>
-                  Employee's current skills
+                  {t.employeeSkills.possessedHint}
                 </Typography>
 
                 {/* Skills List */}
@@ -527,7 +539,7 @@ export function EmployeeSkillsPage() {
                 }}>
                   {possessedSkills.length === 0 ? (
                     <Typography variant="body2" color="text.secondary" sx={{ p: 3, textAlign: 'center' }}>
-                      No skills selected
+                      {t.employeeSkills.noneSelected}
                     </Typography>
                   ) : (
                     possessedSkills.map((ps) => (
@@ -568,7 +580,7 @@ export function EmployeeSkillsPage() {
                         {/* Skill Grade Selector */}
                         <Box sx={{ ml: 4 }}>
                           <Typography variant="caption" sx={{ display: 'block', mb: 0.5, fontWeight: 500 }}>
-                            Skill Grade
+                            {t.employeeSkills.skillGrade}
                           </Typography>
                           <FormControl fullWidth size="small">
                             <Select
@@ -670,7 +682,7 @@ export function EmployeeSkillsPage() {
                   py: 1,
                 }}
               >
-                Cancel
+                {t.common.cancel}
               </Button>
               <Button
                 variant="contained"
@@ -685,7 +697,7 @@ export function EmployeeSkillsPage() {
                   fontWeight: 'bold',
                 }}
               >
-                Save Changes
+                {t.common.saveChanges}
               </Button>
             </Box>
           </>
@@ -699,7 +711,7 @@ export function EmployeeSkillsPage() {
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       >
         <Alert onClose={handleSnackbarClose} severity={snackbar.severity} sx={{ width: '100%' }}>
-          {snackbar.message}
+          {snackbar.message(t)}
         </Alert>
       </Snackbar>
     </Box>

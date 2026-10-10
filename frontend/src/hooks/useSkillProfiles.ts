@@ -5,7 +5,7 @@ import { skillProfileService } from '../services/skillProfileService';
 export function useSkillProfiles() {
   const [skillProfiles, setSkillProfiles] = useState<SkillProfile[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<unknown>(null);
 
   const fetchSkillProfiles = async () => {
     try {
@@ -14,7 +14,7 @@ export function useSkillProfiles() {
       setSkillProfiles(data);
       setError(null);
     } catch (err) {
-      setError('Failed to fetch skill profiles');
+      setError(err);
       console.error(err);
     } finally {
       setLoading(false);
@@ -31,7 +31,7 @@ export function useSkillProfiles() {
 export function useSkillProfile(id: number | null) {
   const [skillProfile, setSkillProfile] = useState<SkillProfile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<unknown>(null);
 
   useEffect(() => {
     if (id === null) {
@@ -47,7 +47,7 @@ export function useSkillProfile(id: number | null) {
         setSkillProfile(data);
         setError(null);
       } catch (err) {
-        setError('Failed to fetch skill profile');
+        setError(err);
         console.error(err);
       } finally {
         setLoading(false);

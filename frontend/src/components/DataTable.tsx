@@ -12,6 +12,7 @@ import {
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import { useTranslation } from '../i18n/LanguageContext';
 
 interface Column<T> {
   key: string;
@@ -32,6 +33,8 @@ export function DataTable<T extends { id: number }>({
   onEdit,
   onDelete,
 }: DataTableProps<T>) {
+  const { t } = useTranslation();
+
   return (
     <TableContainer component={Paper} sx={{ mt: 2 }}>
       <Table>
@@ -43,7 +46,7 @@ export function DataTable<T extends { id: number }>({
               </TableCell>
             ))}
             {(onEdit || onDelete) && (
-              <TableCell sx={{ fontWeight: 'bold' }}>Actions</TableCell>
+              <TableCell sx={{ fontWeight: 'bold' }}>{t.common.actions}</TableCell>
             )}
           </TableRow>
         </TableHead>
@@ -52,7 +55,7 @@ export function DataTable<T extends { id: number }>({
             <TableRow>
               <TableCell colSpan={columns.length + 1} align="center">
                 <Typography variant="body2" color="text.secondary" sx={{ py: 2 }}>
-                  No data available
+                  {t.common.noData}
                 </Typography>
               </TableCell>
             </TableRow>
@@ -72,6 +75,7 @@ export function DataTable<T extends { id: number }>({
                       <IconButton
                         size="small"
                         color="primary"
+                        aria-label={t.common.edit}
                         onClick={() => onEdit(item)}
                         sx={{ mr: 1 }}
                       >
@@ -82,6 +86,7 @@ export function DataTable<T extends { id: number }>({
                       <IconButton
                         size="small"
                         color="error"
+                        aria-label={t.common.delete}
                         onClick={() => onDelete(item)}
                       >
                         <DeleteIcon fontSize="small" />
