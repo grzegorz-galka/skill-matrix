@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { SkillGrade } from '../types';
 import { skillGradeService } from '../services/skillGradeService';
 
@@ -7,7 +7,7 @@ export function useSkillGrades(skillId: number | null) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<unknown>(null);
 
-  const fetchSkillGrades = async () => {
+  const fetchSkillGrades = useCallback(async () => {
     if (!skillId) {
       setSkillGrades([]);
       setLoading(false);
@@ -25,11 +25,11 @@ export function useSkillGrades(skillId: number | null) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [skillId]);
 
   useEffect(() => {
     fetchSkillGrades();
-  }, [skillId]);
+  }, [fetchSkillGrades]);
 
   return { skillGrades, loading, error, refetch: fetchSkillGrades };
 }

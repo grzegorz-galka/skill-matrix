@@ -3,7 +3,7 @@ import { Employee, EmployeeRequest, Page, SkillProfile } from '../types';
 
 export const employeeService = {
   getAll: async (page = 0, size = 20, search?: string): Promise<Page<Employee>> => {
-    const params: any = { page, size };
+    const params: { page: number; size: number; search?: string } = { page, size };
     if (search && search.trim()) {
       params.search = search.trim();
     }

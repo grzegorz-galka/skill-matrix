@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Skill, Page } from '../types';
 import { skillService } from '../services/skillService';
 
@@ -7,7 +7,7 @@ export function useSkills(page = 0, size = 20) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<unknown>(null);
 
-  const fetchSkills = async () => {
+  const fetchSkills = useCallback(async () => {
     try {
       setLoading(true);
       const data = await skillService.getAll(page, size);
@@ -19,11 +19,11 @@ export function useSkills(page = 0, size = 20) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, size]);
 
   useEffect(() => {
     fetchSkills();
-  }, [page, size]);
+  }, [fetchSkills]);
 
   return { skills, loading, error, refetch: fetchSkills };
 }
@@ -33,7 +33,7 @@ export function useSkill(id: number | null) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<unknown>(null);
 
-  const fetchSkill = async () => {
+  const fetchSkill = useCallback(async () => {
     if (id === null) {
       setSkill(null);
       setLoading(false);
@@ -51,11 +51,11 @@ export function useSkill(id: number | null) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
 
   useEffect(() => {
     fetchSkill();
-  }, [id]);
+  }, [fetchSkill]);
 
   return { skill, loading, error, refetch: fetchSkill };
 }

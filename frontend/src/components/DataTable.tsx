@@ -66,7 +66,7 @@ export function DataTable<T extends { id: number }>({
                   <TableCell key={col.key}>
                     {col.render
                       ? col.render(item)
-                      : String((item as any)[col.key] || '')}
+                      : String((item as Record<string, unknown>)[col.key] || '')}
                   </TableCell>
                 ))}
                 {(onEdit || onDelete) && (

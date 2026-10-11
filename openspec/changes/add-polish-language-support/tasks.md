@@ -36,7 +36,7 @@ No backend, schema, API, or role-model change is involved, so there is no Flyway
 - [x] 5.1 Sweep `frontend/src` for remaining hard-coded user-facing English (grep JSX text nodes and `label=`, `title=`, `placeholder=`, `aria-label=`, `alert(`, `confirm(`, `setError(`, `message:`), and move any hits into the dictionaries. Verify the grep returns only data bindings or non-UI strings.
 - [ ] 5.2 Manual walkthrough of every route in PL and EN at desktop and phone widths (Chrome DevTools 375 px). Check for no English chrome in PL, no layout overflow (shorten `pl.ts` strings if needed), `<html lang>` toggling, and choice persisting across reload and sign-out. Verify by recording the result in the PR description.
 - [x] 5.3 Update `CLAUDE.md`: add `i18n/` to the project-structure tree and a "Localization" bullet under Frontend Guidelines (all UI text goes through `useTranslation()`; `pl.ts` is typed against `en.ts`; database values and server messages are never translated). Verify the tree matches `ls frontend/src`.
-- [ ] 5.4 Run `npm run build` and `npm run lint` in `frontend/`, `./mvnw test` in `backend/` (to confirm nothing changed), and `openspec validate add-polish-language-support`. Verify all four succeed.
+- [x] 5.4 Run `npm run build` and `npm run lint` in `frontend/`, `./mvnw test` in `backend/` (to confirm nothing changed), and `openspec validate add-polish-language-support`. Verify all four succeed.
 
 ## Workflow follow-up
 

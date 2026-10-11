@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Box, CircularProgress, Typography } from '@mui/material';
-import { setAccessToken } from './AuthProvider';
+import { setAccessToken } from './tokenStore';
 import { useTranslation } from '../i18n/LanguageContext';
 import { Messages } from '../i18n/en';
 

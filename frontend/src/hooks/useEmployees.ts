@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Employee, Page } from '../types';
 import { employeeService } from '../services/employeeService';
 
@@ -7,7 +7,7 @@ export function useEmployees(page = 0, size = 20, search?: string) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<unknown>(null);
 
-  const fetchEmployees = async () => {
+  const fetchEmployees = useCallback(async () => {
     try {
       setLoading(true);
       const data = await employeeService.getAll(page, size, search);
@@ -19,11 +19,11 @@ export function useEmployees(page = 0, size = 20, search?: string) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, size, search]);
 
   useEffect(() => {
     fetchEmployees();
-  }, [page, size, search]);
+  }, [fetchEmployees]);
 
   return { employees, loading, error, refetch: fetchEmployees };
 }

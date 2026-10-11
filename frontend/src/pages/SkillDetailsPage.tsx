@@ -35,22 +35,11 @@ export function SkillDetailsPage() {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const skillId = Number(id);
-
-  // Validate skill ID
-  if (isNaN(skillId)) {
-    return (
-      <Container maxWidth="lg" sx={{ py: 4 }}>
-        <ErrorMessage message={t.skillDetails.invalidId} />
-        <Button variant="outlined" onClick={() => navigate('/skills')} sx={{ mt: 2 }}>
-          {t.skillDetails.backToSkills}
-        </Button>
-      </Container>
-    );
-  }
+  const isValidId = !isNaN(skillId);
 
   // Fetch data
-  const { skill, loading: skillLoading, error: skillError, refetch: refetchSkill } = useSkill(skillId);
-  const { skillGrades, loading: gradesLoading, error: gradesError, refetch: refetchGrades } = useSkillGrades(skillId);
+  const { skill, loading: skillLoading, error: skillError, refetch: refetchSkill } = useSkill(isValidId ? skillId : null);
+  const { skillGrades, loading: gradesLoading, error: gradesError, refetch: refetchGrades } = useSkillGrades(isValidId ? skillId : null);
   const { skillProfiles } = useSkillProfiles();
 
   // Skill form state
@@ -211,6 +200,18 @@ export function SkillDetailsPage() {
   const handleGradeCancel = () => {
     setShowGradeForm(false);
   };
+
+  // Checked after all hooks so the hook order is the same on every render
+  if (!isValidId) {
+    return (
+      <Container maxWidth="lg" sx={{ py: 4 }}>
+        <ErrorMessage message={t.skillDetails.invalidId} />
+        <Button variant="outlined" onClick={() => navigate('/skills')} sx={{ mt: 2 }}>
+          {t.skillDetails.backToSkills}
+        </Button>
+      </Container>
+    );
+  }
 
   // Loading state
   if (skillLoading) return <Loading />;
